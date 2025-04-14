@@ -1,0 +1,33 @@
+{
+  "name": "@augmentedmind/llm-cost-utils",
+  "version": "0.0.1",
+  "description": "LLM cost calculation and token usage utilities",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/augmentedmind/llm-cost-utils.git"
+  },
+  "homepage": "https://github.com/augmentedmind/llm-cost-utils#readme",
+  "bugs": {
+    "url": "https://github.com/augmentedmind/llm-cost-utils/issues"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "download-model-prices": "node scripts/download-model-prices.js"
+  },
+  "keywords": [
+    "llm",
+    "token",
+    "cost",
+    "ai"
+  ],
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^2.1.9"
+  }
+}
