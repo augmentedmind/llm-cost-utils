@@ -48,31 +48,37 @@ export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsage
     // Extract completion tokens
     completionTokens = responseBody.message.usage.completion_tokens || responseBody.message.usage.output_tokens || 0
   } else if (responseBody?.usage) {
-    // Extract input tokens and cache info
-    promptCacheMissTokens = responseBody.usage.input_tokens || responseBody.usage.prompt_tokens || 0
-
-    // Extract reasoning tokens if available
-    if (responseBody.usage.completion_tokens_details?.reasoning_tokens !== undefined) {
-      reasoningTokens = responseBody.usage.completion_tokens_details.reasoning_tokens || 0
-    } else if (responseBody.usage.completion_tokens_details?.reasoningTokens !== undefined) {
-      reasoningTokens = responseBody.usage.completion_tokens_details.reasoningTokens || 0
+    // Handle Mistral format
+    if (responseBody.model?.startsWith('mistral-')) {
+      promptCacheMissTokens = responseBody.usage.promptTokens || 0
+      completionTokens = responseBody.usage.completionTokens || 0
     } else {
-      reasoningTokens = responseBody.usage.reasoningTokens || 0
+      // Extract input tokens and cache info
+      promptCacheMissTokens = responseBody.usage.input_tokens || responseBody.usage.prompt_tokens || 0
+
+      // Extract reasoning tokens if available
+      if (responseBody.usage.completion_tokens_details?.reasoning_tokens !== undefined) {
+        reasoningTokens = responseBody.usage.completion_tokens_details.reasoning_tokens || 0
+      } else if (responseBody.usage.completion_tokens_details?.reasoningTokens !== undefined) {
+        reasoningTokens = responseBody.usage.completion_tokens_details.reasoningTokens || 0
+      } else {
+        reasoningTokens = responseBody.usage.reasoningTokens || 0
+      }
+
+      // Extract completion tokens
+      completionTokens = responseBody.usage.completion_tokens || responseBody.usage.output_tokens || 0
+
+      // If we have reasoning tokens, subtract them from completion tokens
+      if (reasoningTokens > 0 && completionTokens > 0) {
+        completionTokens = completionTokens - reasoningTokens
+      }
+
+      // Extract cache hit tokens
+      promptCacheHitTokens = responseBody.usage.cache_read_input_tokens || responseBody.usage.cache_read_tokens || 0
+
+      // Extract cache write tokens
+      promptCacheWriteTokens = responseBody.usage.cache_creation_input_tokens || responseBody.usage.cache_write_tokens || 0
     }
-
-    // Extract completion tokens
-    completionTokens = responseBody.usage.completion_tokens || responseBody.usage.output_tokens || 0
-
-    // If we have reasoning tokens, subtract them from completion tokens
-    if (reasoningTokens > 0 && completionTokens > 0) {
-      completionTokens = completionTokens - reasoningTokens
-    }
-
-    // Extract cache hit tokens
-    promptCacheHitTokens = responseBody.usage.cache_read_input_tokens || responseBody.usage.cache_read_tokens || 0
-
-    // Extract cache write tokens
-    promptCacheWriteTokens = responseBody.usage.cache_creation_input_tokens || responseBody.usage.cache_write_tokens || 0
   } else if (responseBody.usageMetadata) {
     // Handle different usageMetadata formats
     if (responseBody.usageMetadata.promptTokenCount !== undefined && responseBody.usageMetadata.candidatesTokenCount !== undefined) {

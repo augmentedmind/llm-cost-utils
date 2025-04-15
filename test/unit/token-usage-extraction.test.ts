@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { extractTokenUsageFromResponseBody } from '../../src/token-usage-extraction'
 
 describe('Token Usage Extraction', () => {
@@ -366,6 +366,111 @@ describe('Token Usage Extraction', () => {
       expect(result.completionTokens).toBe(80)
       expect(result.totalInputTokens).toBe(4799)
       expect(result.totalOutputTokens).toBe(80)
+    })
+
+    it('should extract token usage from Mistral response', () => {
+      const mistralResponse = {
+        id: '16223cd94bf04be9a23dcd4393d13cb9',
+        object: 'chat.completion',
+        model: 'mistral-small-latest',
+        usage: {
+          promptTokens: 2714,
+          completionTokens: 121,
+          totalTokens: 2835
+        },
+        created: 1744697549,
+        choices: [
+          {
+            index: 0,
+            message: {
+              content: 'foo',
+              toolCalls: null,
+              prefix: false,
+              role: 'assistant'
+            },
+            finishReason: 'stop'
+          }
+        ]
+      }
+
+      const result = extractTokenUsageFromResponseBody(mistralResponse)
+      expect(result).toEqual({
+        promptCacheMissTokens: 2714,
+        promptCacheHitTokens: 0,
+        reasoningTokens: 0,
+        completionTokens: 121,
+        totalOutputTokens: 121,
+        totalInputTokens: 2714,
+        promptCacheWriteTokens: 0
+      })
+    })
+
+    it('should handle Mistral response with missing usage fields', () => {
+      const mistralResponse = {
+        id: '16223cd94bf04be9a23dcd4393d13cb9',
+        object: 'chat.completion',
+        model: 'mistral-small-latest',
+        usage: {},
+        created: 1744697549,
+        choices: [
+          {
+            index: 0,
+            message: {
+              content: 'foo',
+              toolCalls: null,
+              prefix: false,
+              role: 'assistant'
+            },
+            finishReason: 'stop'
+          }
+        ]
+      }
+
+      const result = extractTokenUsageFromResponseBody(mistralResponse)
+      expect(result).toEqual({
+        promptCacheMissTokens: 0,
+        promptCacheHitTokens: 0,
+        reasoningTokens: 0,
+        completionTokens: 0,
+        totalOutputTokens: 0,
+        totalInputTokens: 0,
+        promptCacheWriteTokens: 0
+      })
+    })
+
+    it('should handle Mistral response with partial usage fields', () => {
+      const mistralResponse = {
+        id: '16223cd94bf04be9a23dcd4393d13cb9',
+        object: 'chat.completion',
+        model: 'mistral-small-latest',
+        usage: {
+          promptTokens: 2714
+        },
+        created: 1744697549,
+        choices: [
+          {
+            index: 0,
+            message: {
+              content: 'foo',
+              toolCalls: null,
+              prefix: false,
+              role: 'assistant'
+            },
+            finishReason: 'stop'
+          }
+        ]
+      }
+
+      const result = extractTokenUsageFromResponseBody(mistralResponse)
+      expect(result).toEqual({
+        promptCacheMissTokens: 2714,
+        promptCacheHitTokens: 0,
+        reasoningTokens: 0,
+        completionTokens: 0,
+        totalOutputTokens: 0,
+        totalInputTokens: 2714,
+        promptCacheWriteTokens: 0
+      })
     })
   })
 })
