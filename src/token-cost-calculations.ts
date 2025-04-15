@@ -94,9 +94,10 @@ export function getModelPricing(model: string): ModelPricing {
     return modelPricesData[normalizedModel] as ModelPricing
   }
 
-  // Try to find a partial match (e.g., if model includes version info)
+  // Try to find a match by comparing the model name without provider prefix
   for (const knownModel of Object.keys(modelPricesData)) {
-    if (normalizedModel.includes(knownModel)) {
+    const knownModelWithoutProvider = knownModel.split('/').pop()?.toLowerCase()
+    if (knownModelWithoutProvider === normalizedModel) {
       return modelPricesData[knownModel] as ModelPricing
     }
   }

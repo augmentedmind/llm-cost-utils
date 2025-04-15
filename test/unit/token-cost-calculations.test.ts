@@ -8,6 +8,14 @@ vi.mock('../../src/data/model-prices.json', () => ({
       input_cost_per_token: 0.00003,
       output_cost_per_token: 0.00006,
     },
+    'openai/gpt-4-turbo': {
+      input_cost_per_token: 0.00001,
+      output_cost_per_token: 0.00003,
+    },
+    'mistral/mistral-small-latest': {
+      input_cost_per_token: 0.000001,
+      output_cost_per_token: 0.000002,
+    },
     'claude-3-opus-20240229': {
       input_cost_per_token: 0.000015,
       output_cost_per_token: 0.000075,
@@ -28,10 +36,16 @@ describe('getModelPricing', () => {
     expect(pricing.output_cost_per_token).toBe(0.00006)
   })
 
-  it('should return pricing for partial model match', () => {
+  it('should return pricing for provider-prefixed model match', () => {
+    const pricing = getModelPricing('mistral-small-latest')
+    expect(pricing.input_cost_per_token).toBe(0.000001)
+    expect(pricing.output_cost_per_token).toBe(0.000002)
+  })
+
+  it('should return pricing for provider-prefixed model with different provider', () => {
     const pricing = getModelPricing('gpt-4-turbo')
-    expect(pricing.input_cost_per_token).toBe(0.00003)
-    expect(pricing.output_cost_per_token).toBe(0.00006)
+    expect(pricing.input_cost_per_token).toBe(0.00001)
+    expect(pricing.output_cost_per_token).toBe(0.00003)
   })
 
   it('should throw an error for unknown model', () => {
