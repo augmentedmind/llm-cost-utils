@@ -1,5 +1,5 @@
 {
-  "name": "@augmentedmind/llm-cost-utils",
+  "name": "llm-cost-utils",
   "version": "0.0.1",
   "description": "LLM cost calculation and token usage utilities",
   "main": "dist/index.js",
