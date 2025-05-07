@@ -1,5 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { extractTokenUsageFromResponseBody } from '../../src/token-usage-extraction'
+import {
+  extractTokenUsageFromResponseBody,
+  extractTokenUsageFromResponse,
+  extractTokenUsageFromStreamingResponseBody,
+  TokenUsageExtractionError,
+  TokenUsageWithModel
+} from '../../src/token-usage-extraction.js'
+import { TokenUsage } from '../../src/token-cost-calculations.js'
+import fs from 'fs'
+import path from 'path'
 
 describe('Token Usage Extraction', () => {
   describe('extractTokenUsageFromResponseBody', () => {
@@ -474,6 +483,59 @@ describe('Token Usage Extraction', () => {
         promptCacheWriteTokens: 0,
         model: 'mistral-small-latest'
       })
+    })
+  })
+
+  // Add tests for SSE streaming responses
+  describe('extractTokenUsageFromStreamingResponseBody and extractTokenUsageFromResponse', () => {
+    it('should extract token usage and model from OpenAI SSE with usage data', () => {
+      // Read the OpenAI SSE fixture with usage data
+      const sseContent = fs.readFileSync(
+        path.join(__dirname, 'fixtures/openai-sse-with-usage.txt'),
+        'utf-8'
+      )
+
+      // Extract token usage from the SSE content
+      const result = extractTokenUsageFromResponse(sseContent)
+
+      // Verify the token usage values
+      expect(result.promptCacheMissTokens).toBe(10)
+      expect(result.completionTokens).toBe(10)
+      expect(result.totalOutputTokens).toBe(10)
+      expect(result.totalInputTokens).toBe(10)
+      expect(result.model).toBe('gpt-4o-2024-08-06')
+    })
+
+    it('should throw an error for OpenAI SSE without usage data', () => {
+      // Read the OpenAI SSE fixture without usage data
+      const sseContent = fs.readFileSync(
+        path.join(__dirname, 'fixtures/openai-sse-without-usage.txt'),
+        'utf-8'
+      )
+
+      // The content should have a model but no token usage data
+      const result = extractTokenUsageFromResponse(sseContent)
+
+      // It should extract the model
+      expect(result.model).toBe('gpt-4o-2024-08-06')
+
+      // But all token counts should be zero since no usage was provided
+      expect(result.promptCacheMissTokens).toBe(0)
+      expect(result.completionTokens).toBe(0)
+      expect(result.totalInputTokens).toBe(0)
+      expect(result.totalOutputTokens).toBe(0)
+    })
+
+    it('should extract just the model from individual SSE message without usage', () => {
+      // Properly formatted SSE message with data: prefix and newlines
+      const sseMessage = 'data: {"id":"chatcmpl-123","model":"gpt-4o-2024-08-06","choices":[{"delta":{"content":"Hello"}}]}\n\n'
+
+      const result = extractTokenUsageFromResponse(sseMessage)
+
+      // Should extract model but have zero token counts
+      expect(result.model).toBe('gpt-4o-2024-08-06')
+      expect(result.promptCacheMissTokens).toBe(0)
+      expect(result.completionTokens).toBe(0)
     })
   })
 })

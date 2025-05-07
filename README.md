@@ -39,7 +39,8 @@ console.log(tokenUsage);
 //   completionTokens: 50,
 //   totalOutputTokens: 50,
 //   totalInputTokens: 100,
-//   promptCacheWriteTokens: 0
+//   promptCacheWriteTokens: 0,
+//   model: undefined
 // }
 
 // Extract token usage from a raw response body (string or object)

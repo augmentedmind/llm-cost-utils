@@ -187,6 +187,25 @@ export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsage
 }
 
 /**
+ * Determines if the response body is likely a SSE stream based on its content
+ */
+export function isSSEResponseBody(responseBody: string | object): boolean {
+  // If it's already an object, it's not SSE
+  if (typeof responseBody !== 'string') {
+    return false
+  }
+
+  // Check for SSE format indicators
+  // 1. Contains 'data: ' prefix
+  // 2. Contains newlines between events or has the 'event:' prefix
+  // 3. SSE typically ends with [DONE] for completions
+  return (responseBody.includes('data: ') &&
+         (responseBody.includes('\n\n') ||
+          responseBody.includes('event:'))) ||
+         responseBody.includes('data: [DONE]')
+}
+
+/**
  * Extract token usage from a streaming response by parsing SSE events
  */
 export function extractTokenUsageFromStreamingResponseBody(responseText: string): TokenUsageWithModel {
@@ -261,22 +280,35 @@ export function extractTokenUsageFromStreamingResponseBody(responseText: string)
     }
   }
 
-  return tokenUsage
-}
+  // For OpenAI SSE responses, the token usage often comes at the very end
+  // Check if the last event contains the usage information
+  if (events.length > 0 && tokenUsage.totalInputTokens === 0 && tokenUsage.totalOutputTokens === 0) {
+    try {
+      const lastEvent = events[events.length - 1]
+      if (lastEvent.includes('usage":{"prompt_tokens":') ||
+          lastEvent.includes('usage":{"input_tokens":') ||
+          lastEvent.includes('"usage":{')) {
 
-/**
- * Determines if the response body is likely a SSE stream based on its content
- */
-export function isSSEResponseBody(responseBody: string | object): boolean {
-  // If it's already an object, it's not SSE
-  if (typeof responseBody !== 'string') {
-    return false
+        const dataLine = lastEvent.split('\n').find(line => line.startsWith('data: '))
+        if (dataLine) {
+          const jsonStr = dataLine.replace('data: ', '')
+          if (jsonStr !== '[DONE]') {
+            const data = JSON.parse(jsonStr)
+            if (data.usage) {
+              const eventTokenUsage = extractTokenUsageFromResponseBody(data)
+              // Update tokenUsage with the usage information from the last event
+              Object.assign(tokenUsage, eventTokenUsage)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      // Continue with zero token counts if we can't parse the last event
+      console.error('Error parsing last SSE event for token usage:', error)
+    }
   }
 
-  // Check for SSE format indicators
-  return responseBody.includes('data: ') &&
-         (responseBody.includes('\n\n') ||
-          responseBody.includes('event:'));
+  return tokenUsage
 }
 
 /**
