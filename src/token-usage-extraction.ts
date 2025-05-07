@@ -16,10 +16,17 @@ export class TokenUsageExtractionError extends Error {
 }
 
 /**
+ * Extended TokenUsage interface that includes model information
+ */
+export interface TokenUsageWithModel extends TokenUsage {
+  model?: string
+}
+
+/**
  * Extract token usage from a response body object
  * This is the core function that handles all the different formats of token usage data
  */
-export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsage {
+export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsageWithModel {
   // Throw error for null or undefined input
   if (responseBody === null || responseBody === undefined) {
     throw new TokenUsageExtractionError('Token usage extraction failed: responseBody is null or undefined')
@@ -33,6 +40,15 @@ export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsage
   let totalOutputTokens = 0
   let totalInputTokens = 0
   let promptCacheWriteTokens = 0
+  let model: string | undefined = undefined
+
+  // Extract model information if available
+  if (responseBody.model) {
+    model = responseBody.model
+  } else if (responseBody.id && typeof responseBody.id === 'string' && responseBody.id.startsWith('cmpl-')) {
+    // OpenAI completion ID, try to extract model from object
+    model = responseBody.model || undefined
+  }
 
   // Handle message_start event from streaming responses
   if (responseBody?.message?.usage) {
@@ -47,11 +63,17 @@ export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsage
 
     // Extract completion tokens
     completionTokens = responseBody.message.usage.completion_tokens || responseBody.message.usage.output_tokens || 0
+
+    // Try to get model from message
+    if (!model && responseBody.message.model) {
+      model = responseBody.message.model
+    }
   } else if (responseBody?.usage) {
     // Handle Mistral format
     if (responseBody.model?.startsWith('mistral-')) {
       promptCacheMissTokens = responseBody.usage.promptTokens || 0
       completionTokens = responseBody.usage.completionTokens || 0
+      model = responseBody.model
     } else {
       // Extract input tokens and cache info
       promptCacheMissTokens = responseBody.usage.input_tokens || responseBody.usage.prompt_tokens || 0
@@ -85,6 +107,11 @@ export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsage
       // Gemini 2.0 Flash format
       promptCacheMissTokens = responseBody.usageMetadata.promptTokenCount || 0
       completionTokens = responseBody.usageMetadata.candidatesTokenCount || 0
+
+      // Try to extract model for Google/Gemini
+      if (responseBody.model) {
+        model = responseBody.model
+      }
     } else {
       // Anthropic format
       promptCacheMissTokens = responseBody.usageMetadata.input_tokens || 0
@@ -99,6 +126,11 @@ export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsage
 
       if (responseBody.usageMetadata.cache_creation_input_tokens) {
         promptCacheWriteTokens = responseBody.usageMetadata.cache_creation_input_tokens
+      }
+
+      // Try to extract model from Anthropic response
+      if (responseBody.model) {
+        model = responseBody.model
       }
     }
   } else if (responseBody.usage_object) {
@@ -122,10 +154,20 @@ export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsage
 
     // Extract cache write tokens
     promptCacheWriteTokens = usage.cache_creation_input_tokens || 0
+
+    // Try to extract model from response
+    if (responseBody.model) {
+      model = responseBody.model
+    }
   } else if (responseBody.promptTokenCount) {
     // Google AI Studio format
     promptCacheMissTokens = responseBody.promptTokenCount || 0
     completionTokens = responseBody.candidatesTokenCount || 0
+
+    // Try to extract model
+    if (responseBody.model) {
+      model = responseBody.model
+    }
   }
 
   // Calculate total values
@@ -140,58 +182,29 @@ export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsage
     totalOutputTokens,
     totalInputTokens,
     promptCacheWriteTokens,
+    model,
   }
 }
 
 /**
  * Extract token usage from a streaming response by parsing SSE events
  */
-export async function extractTokenUsageFromStreamingResponse(response: Response): Promise<TokenUsage> {
+export function extractTokenUsageFromStreamingResponseBody(responseText: string): TokenUsageWithModel {
   // Throw error for null or undefined response
-  if (!response) {
-    throw new TokenUsageExtractionError('Token usage extraction failed: response is null or undefined')
+  if (!responseText) {
+    throw new TokenUsageExtractionError('Token usage extraction failed: response text is null or undefined')
   }
-
-  // Throw error if response is not a valid Response object
-  if (!(response instanceof Response)) {
-    throw new TokenUsageExtractionError('Token usage extraction failed: response is not a valid Response object')
-  }
-
-  // Throw error if response body is not available
-  if (!response.body) {
-    throw new TokenUsageExtractionError('Token usage extraction failed: response body is not available')
-  }
-
-  // Read the entire stream
-  const reader = response.body.getReader()
-  if (!reader) {
-    throw new TokenUsageExtractionError('Token usage extraction failed: no reader available for streaming response')
-  }
-
-  const chunks: string[] = []
-  let done = false
-
-  while (!done) {
-    const { value, done: doneReading } = await reader.read()
-    done = doneReading
-    if (value) {
-      chunks.push(new TextDecoder().decode(value))
-    }
-  }
-
-  // Combine all chunks
-  const fullText = chunks.join('')
 
   // Check for error events in the stream
-  if (fullText.includes('event: error') || fullText.includes('"type":"error"')) {
+  if (responseText.includes('event: error') || responseText.includes('"type":"error"')) {
     throw new TokenUsageExtractionError('Token usage extraction failed: error event detected in stream')
   }
 
   // Parse SSE events
-  const events = fullText.split('\n\n').filter((event) => event.trim() !== '')
+  const events = responseText.split('\n\n').filter((event) => event.trim() !== '')
 
   // Initialize token usage with default values
-  let tokenUsage: TokenUsage = {
+  let tokenUsage: TokenUsageWithModel = {
     promptCacheMissTokens: 0,
     promptCacheHitTokens: 0,
     reasoningTokens: 0,
@@ -199,9 +212,10 @@ export async function extractTokenUsageFromStreamingResponse(response: Response)
     totalOutputTokens: 0,
     totalInputTokens: 0,
     promptCacheWriteTokens: 0,
+    model: undefined,
   }
 
-  // Look through all events for usage information
+  // Look through all events for usage information and model
   for (const event of events) {
     try {
       const lines = event.split('\n')
@@ -213,6 +227,11 @@ export async function extractTokenUsageFromStreamingResponse(response: Response)
 
         try {
           const data = JSON.parse(jsonStr)
+
+          // Extract model if available
+          if (data.model && !tokenUsage.model) {
+            tokenUsage.model = data.model
+          }
 
           // Handle different usage formats
           if (data.message?.usage || data.usage || data.usageMetadata) {
@@ -226,6 +245,11 @@ export async function extractTokenUsageFromStreamingResponse(response: Response)
             tokenUsage.totalOutputTokens = Math.max(tokenUsage.totalOutputTokens, eventTokenUsage.totalOutputTokens)
             tokenUsage.totalInputTokens = Math.max(tokenUsage.totalInputTokens, eventTokenUsage.totalInputTokens)
             tokenUsage.promptCacheWriteTokens = Math.max(tokenUsage.promptCacheWriteTokens, eventTokenUsage.promptCacheWriteTokens)
+
+            // Update model if found
+            if (eventTokenUsage.model && !tokenUsage.model) {
+              tokenUsage.model = eventTokenUsage.model
+            }
           }
         } catch (e) {
           // Skip non-JSON events
@@ -241,38 +265,41 @@ export async function extractTokenUsageFromStreamingResponse(response: Response)
 }
 
 /**
- * Extract token usage from a response object
- * This is the top-level function that handles both streaming and non-streaming responses
+ * Determines if the response body is likely a SSE stream based on its content
  */
-export async function extractTokenUsageFromResponse(response: Response): Promise<TokenUsage> {
-  // Throw error for null or undefined response
-  if (!response) {
-    throw new TokenUsageExtractionError('Token usage extraction failed: response is null or undefined')
+export function isSSEResponseBody(responseBody: string | object): boolean {
+  // If it's already an object, it's not SSE
+  if (typeof responseBody !== 'string') {
+    return false
   }
 
-  // Throw error if response is not a valid Response object
-  if (!(response instanceof Response)) {
-    throw new TokenUsageExtractionError('Token usage extraction failed: response is not a valid Response object')
-  }
+  // Check for SSE format indicators
+  return responseBody.includes('data: ') &&
+         (responseBody.includes('\n\n') ||
+          responseBody.includes('event:'));
+}
 
-  // Check if response status is OK
-  if (!response.ok) {
-    throw new TokenUsageExtractionError(`Token usage extraction failed: response status is ${response.status}`)
+/**
+ * Extract token usage from a response body
+ * This function handles both streaming (SSE) and JSON response bodies
+ *
+ * @param responseBody The raw response body (string for SSE, object for JSON)
+ * @returns The extracted token usage with model information when available
+ */
+export function extractTokenUsageFromResponse(responseBody: string | any): TokenUsageWithModel {
+  // Throw error for null or undefined input
+  if (responseBody === null || responseBody === undefined) {
+    throw new TokenUsageExtractionError('Token usage extraction failed: responseBody is null or undefined')
   }
 
   try {
-    // Clone the response before using it
-    const responseClone = response.clone()
-
-    // Check if the response is a streaming response
-    const contentType = response.headers.get('content-type') || ''
-    if (contentType.includes('text/event-stream')) {
-      // Handle streaming response
-      return await extractTokenUsageFromStreamingResponse(responseClone)
+    // Check if it's a streaming response (SSE)
+    if (isSSEResponseBody(responseBody)) {
+      return extractTokenUsageFromStreamingResponseBody(responseBody as string)
     } else {
-      // Handle regular JSON response
-      const responseJson = await responseClone.json()
-      return extractTokenUsageFromResponseBody(responseJson)
+      // Handle JSON response
+      const jsonBody = typeof responseBody === 'string' ? JSON.parse(responseBody) : responseBody
+      return extractTokenUsageFromResponseBody(jsonBody)
     }
   } catch (error) {
     throw new TokenUsageExtractionError(

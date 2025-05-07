@@ -401,7 +401,8 @@ describe('Token Usage Extraction', () => {
         completionTokens: 121,
         totalOutputTokens: 121,
         totalInputTokens: 2714,
-        promptCacheWriteTokens: 0
+        promptCacheWriteTokens: 0,
+        model: 'mistral-small-latest'
       })
     })
 
@@ -434,7 +435,8 @@ describe('Token Usage Extraction', () => {
         completionTokens: 0,
         totalOutputTokens: 0,
         totalInputTokens: 0,
-        promptCacheWriteTokens: 0
+        promptCacheWriteTokens: 0,
+        model: 'mistral-small-latest'
       })
     })
 
@@ -469,7 +471,8 @@ describe('Token Usage Extraction', () => {
         completionTokens: 0,
         totalOutputTokens: 0,
         totalInputTokens: 2714,
-        promptCacheWriteTokens: 0
+        promptCacheWriteTokens: 0,
+        model: 'mistral-small-latest'
       })
     })
   })
