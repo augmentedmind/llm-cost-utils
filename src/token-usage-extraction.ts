@@ -199,10 +199,13 @@ export function isSSEResponseBody(responseBody: string | object): boolean {
   // 1. Contains 'data: ' prefix
   // 2. Contains newlines between events or has the 'event:' prefix
   // 3. SSE typically ends with [DONE] for completions
+  // 4. Check for data: {"id":"chatcmpl- pattern for OpenAI responses
   return (responseBody.includes('data: ') &&
          (responseBody.includes('\n\n') ||
           responseBody.includes('event:'))) ||
-         responseBody.includes('data: [DONE]')
+         responseBody.includes('data: [DONE]') ||
+         (responseBody.includes('data: {"id":"chatcmpl-') ||
+          responseBody.includes('data: {"model":'))
 }
 
 /**
@@ -219,8 +222,15 @@ export function extractTokenUsageFromStreamingResponseBody(responseText: string)
     throw new TokenUsageExtractionError('Token usage extraction failed: error event detected in stream')
   }
 
-  // Parse SSE events
-  const events = responseText.split('\n\n').filter((event) => event.trim() !== '')
+  // Parse SSE events - handle both proper newlines (\n\n) and improper formatting (just data: prefixes)
+  let events = responseText.split('\n\n').filter((event) => event.trim() !== '')
+
+  // If we don't have multiple events with proper newlines, try to split by data: instead
+  if (events.length <= 1 && responseText.includes('data: ')) {
+    // This is a workaround for SSE streams without proper newlines
+    const dataLines = responseText.split('data: ')
+    events = dataLines.filter(line => line.trim() !== '').map(line => `data: ${line}`)
+  }
 
   // Initialize token usage with default values
   let tokenUsage: TokenUsageWithModel = {

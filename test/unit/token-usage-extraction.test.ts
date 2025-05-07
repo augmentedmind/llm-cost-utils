@@ -537,5 +537,22 @@ describe('Token Usage Extraction', () => {
       expect(result.promptCacheMissTokens).toBe(0)
       expect(result.completionTokens).toBe(0)
     })
+
+    it('should handle SSE without proper newlines between events', () => {
+      // Read the edge case fixture
+      const sseContent = fs.readFileSync(
+        path.join(__dirname, 'fixtures/edge-cases/sse-without-proper-newlines.txt'),
+        'utf-8'
+      )
+
+      const result = extractTokenUsageFromResponse(sseContent)
+
+      // Should extract model and token usage
+      expect(result.model).toBe('gpt-4o-2024-08-06')
+      expect(result.promptCacheMissTokens).toBe(10)
+      expect(result.completionTokens).toBe(10)
+      expect(result.totalInputTokens).toBe(10)
+      expect(result.totalOutputTokens).toBe(10)
+    })
   })
 })

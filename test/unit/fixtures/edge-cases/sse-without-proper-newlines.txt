@@ -1,0 +1,4 @@
+data: {"id":"chatcmpl-123","model":"gpt-4o-2024-08-06","choices":[{"delta":{"content":"Hello"}}]}
+data: {"id":"chatcmpl-123","model":"gpt-4o-2024-08-06","choices":[{"delta":{"content":" world"}}]}
+data: {"id":"chatcmpl-123","model":"gpt-4o-2024-08-06","choices":[{"delta":{"content":"!"}}]}
+data: {"id":"chatcmpl-123","model":"gpt-4o-2024-08-06","choices":[{"delta":{"content":""}}],"usage":{"prompt_tokens":10,"completion_tokens":10,"total_tokens":20}}
