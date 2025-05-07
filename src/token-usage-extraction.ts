@@ -174,6 +174,11 @@ export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsage
   totalOutputTokens = reasoningTokens + completionTokens
   totalInputTokens = promptCacheMissTokens + promptCacheHitTokens + promptCacheWriteTokens
 
+  // Check if we have no token usage information
+  if (totalInputTokens === 0 && totalOutputTokens === 0) {
+    throw new TokenUsageExtractionError(`Token usage extraction failed: no token usage information in response`)
+  }
+
   return {
     promptCacheMissTokens,
     promptCacheHitTokens,

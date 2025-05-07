@@ -281,16 +281,22 @@ describe('Token Usage Extraction', () => {
     })
 
     it('should handle empty metadata', () => {
-      // Empty object is valid input, just has no token usage data
-      const usage = extractTokenUsageFromResponseBody({})
+      // Empty object should throw an error since there's no token usage information
+      expect(() => extractTokenUsageFromResponseBody({})).toThrow(TokenUsageExtractionError)
+      expect(() => extractTokenUsageFromResponseBody({})).toThrow('Token usage extraction failed: no token usage information in response')
+    })
 
-      expect(usage.promptCacheMissTokens).toBe(0)
-      expect(usage.reasoningTokens).toBe(0)
-      expect(usage.completionTokens).toBe(0)
-      expect(usage.totalOutputTokens).toBe(0)
-      expect(usage.promptCacheHitTokens).toBe(0)
-      expect(usage.promptCacheWriteTokens).toBe(0)
-      expect(usage.totalInputTokens).toBe(0)
+    it('should throw error when no token usage information is present', () => {
+      // A response object that has no actual token usage data
+      const emptyUsageResponse = {
+        id: 'response-123',
+        model: 'test-model',
+        choices: [{ message: { content: 'Test content' } }]
+      }
+
+      // Should throw an error since there's no token usage information
+      expect(() => extractTokenUsageFromResponseBody(emptyUsageResponse)).toThrow(TokenUsageExtractionError)
+      expect(() => extractTokenUsageFromResponseBody(emptyUsageResponse)).toThrow('Token usage extraction failed: no token usage information in response')
     })
 
     it('should throw error for null metadata', () => {
@@ -436,17 +442,9 @@ describe('Token Usage Extraction', () => {
         ]
       }
 
-      const result = extractTokenUsageFromResponseBody(mistralResponse)
-      expect(result).toEqual({
-        promptCacheMissTokens: 0,
-        promptCacheHitTokens: 0,
-        reasoningTokens: 0,
-        completionTokens: 0,
-        totalOutputTokens: 0,
-        totalInputTokens: 0,
-        promptCacheWriteTokens: 0,
-        model: 'mistral-small-latest'
-      })
+      // Should throw an error since there's no token usage information
+      expect(() => extractTokenUsageFromResponseBody(mistralResponse)).toThrow(TokenUsageExtractionError)
+      expect(() => extractTokenUsageFromResponseBody(mistralResponse)).toThrow('Token usage extraction failed: no token usage information in response')
     })
 
     it('should handle Mistral response with partial usage fields', () => {
