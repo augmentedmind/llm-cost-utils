@@ -290,32 +290,10 @@ export function extractTokenUsageFromStreamingResponseBody(responseText: string)
     }
   }
 
-  // For OpenAI SSE responses, the token usage often comes at the very end
-  // Check if the last event contains the usage information
-  if (events.length > 0 && tokenUsage.totalInputTokens === 0 && tokenUsage.totalOutputTokens === 0) {
-    try {
-      const lastEvent = events[events.length - 1]
-      if (lastEvent.includes('usage":{"prompt_tokens":') ||
-          lastEvent.includes('usage":{"input_tokens":') ||
-          lastEvent.includes('"usage":{')) {
-
-        const dataLine = lastEvent.split('\n').find(line => line.startsWith('data: '))
-        if (dataLine) {
-          const jsonStr = dataLine.replace('data: ', '')
-          if (jsonStr !== '[DONE]') {
-            const data = JSON.parse(jsonStr)
-            if (data.usage) {
-              const eventTokenUsage = extractTokenUsageFromResponseBody(data)
-              // Update tokenUsage with the usage information from the last event
-              Object.assign(tokenUsage, eventTokenUsage)
-            }
-          }
-        }
-      }
-    } catch (error) {
-      // Continue with zero token counts if we can't parse the last event
-      console.error('Error parsing last SSE event for token usage:', error)
-    }
+  // Check if we found any token usage information
+  if (tokenUsage.totalInputTokens === 0 && tokenUsage.totalOutputTokens === 0) {
+    // We have a model but no token usage - this is likely a streaming response without usage info
+    throw new TokenUsageExtractionError('Token usage extraction failed: no token usage information found in streaming response')
   }
 
   return tokenUsage

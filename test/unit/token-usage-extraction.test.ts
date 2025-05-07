@@ -513,29 +513,18 @@ describe('Token Usage Extraction', () => {
         'utf-8'
       )
 
-      // The content should have a model but no token usage data
-      const result = extractTokenUsageFromResponse(sseContent)
-
-      // It should extract the model
-      expect(result.model).toBe('gpt-4o-2024-08-06')
-
-      // But all token counts should be zero since no usage was provided
-      expect(result.promptCacheMissTokens).toBe(0)
-      expect(result.completionTokens).toBe(0)
-      expect(result.totalInputTokens).toBe(0)
-      expect(result.totalOutputTokens).toBe(0)
+      // The function should throw a TokenUsageExtractionError since there's no usage data
+      expect(() => extractTokenUsageFromResponse(sseContent)).toThrow(TokenUsageExtractionError)
+      expect(() => extractTokenUsageFromResponse(sseContent)).toThrow('no token usage information found in streaming response')
     })
 
-    it('should extract just the model from individual SSE message without usage', () => {
+    it('should throw an error for individual SSE message without usage', () => {
       // Properly formatted SSE message with data: prefix and newlines
       const sseMessage = 'data: {"id":"chatcmpl-123","model":"gpt-4o-2024-08-06","choices":[{"delta":{"content":"Hello"}}]}\n\n'
 
-      const result = extractTokenUsageFromResponse(sseMessage)
-
-      // Should extract model but have zero token counts
-      expect(result.model).toBe('gpt-4o-2024-08-06')
-      expect(result.promptCacheMissTokens).toBe(0)
-      expect(result.completionTokens).toBe(0)
+      // Should throw an error since there's no token usage information
+      expect(() => extractTokenUsageFromResponse(sseMessage)).toThrow(TokenUsageExtractionError)
+      expect(() => extractTokenUsageFromResponse(sseMessage)).toThrow('no token usage information found in streaming response')
     })
 
     it('should handle SSE without proper newlines between events', () => {
