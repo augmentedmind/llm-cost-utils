@@ -3,7 +3,7 @@
 
 // Import the model prices data
 // This will need to be copied from the API package data directory
-import rawModelPricesData from './data/model-prices.json'
+import rawModelPricesData from './data/model-prices.json' with { type: 'json' };
 
 // Define the type for the model pricing map
 type ModelPricingRawMap = Record<string, ModelPricingRaw>
