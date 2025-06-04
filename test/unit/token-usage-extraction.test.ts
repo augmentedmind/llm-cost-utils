@@ -213,6 +213,30 @@ describe('Token Usage Extraction', () => {
       expect(usage.totalInputTokens).toBe(150) // 100 + 20 + 30 (including cache write tokens)
     })
 
+    it('should extract OpenAI format with cached tokens from prompt_tokens_details', () => {
+      // This test case specifically addresses the bug where cached_tokens from 
+      // prompt_tokens_details was not being extracted properly
+      const responseBody = {
+        usage: {
+          prompt_tokens: 2568,
+          completion_tokens: 268,
+          prompt_tokens_details: {
+            cached_tokens: 1280
+          }
+        },
+        model: "gpt-4o-2024-11-20"
+      }
+
+      const result = extractTokenUsageFromResponseBody(responseBody)
+
+      expect(result.promptCacheHitTokens).toBe(1280)
+      expect(result.promptCacheMissTokens).toBe(1288) // 2568 - 1280
+      expect(result.completionTokens).toBe(268)
+      expect(result.totalInputTokens).toBe(2568) // 1288 + 1280
+      expect(result.totalOutputTokens).toBe(268)
+      expect(result.model).toBe("gpt-4o-2024-11-20")
+    })
+
     it('should extract token usage from usage_object format (including write tokens)', () => {
       const metadata = {
         usage_object: {

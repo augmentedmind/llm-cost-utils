@@ -128,8 +128,16 @@ export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsage
         completionTokens = completionTokens - reasoningTokens
       }
 
-      // Extract cache hit tokens
-      promptCacheHitTokens = responseBody.usage.cache_read_input_tokens || responseBody.usage.cache_read_tokens || 0
+      // Extract cache hit tokens - check OpenAI format first
+      if (responseBody.usage.prompt_tokens_details?.cached_tokens !== undefined) {
+        promptCacheHitTokens = responseBody.usage.prompt_tokens_details.cached_tokens || 0
+        // Adjust promptCacheMissTokens to exclude cached tokens for OpenAI format
+        const totalPromptTokens = responseBody.usage.prompt_tokens || 0
+        promptCacheMissTokens = Math.max(0, totalPromptTokens - promptCacheHitTokens)
+      } else {
+        // Fallback to other formats
+        promptCacheHitTokens = responseBody.usage.cache_read_input_tokens || responseBody.usage.cache_read_tokens || 0
+      }
 
       // Extract cache write tokens
       promptCacheWriteTokens = responseBody.usage.cache_creation_input_tokens || responseBody.usage.cache_write_tokens || 0
