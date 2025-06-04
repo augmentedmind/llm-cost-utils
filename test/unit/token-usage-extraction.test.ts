@@ -542,4 +542,106 @@ describe('Token Usage Extraction', () => {
       expect(result.totalOutputTokens).toBe(10)
     })
   })
+
+  describe('AI SDK (Vercel AI SDK) format support', () => {
+    it('should extract token usage from AI SDK format with nested usage object', () => {
+      const aiSdkResponse = {
+        model: "gpt-4o",
+        usage: {
+          promptTokens: 91,
+          completionTokens: 38,
+          totalTokens: 129
+        },
+        providerMetadata: {
+          openai: {
+            cachedPromptTokens: 0,
+            reasoningTokens: 0,
+            acceptedPredictionTokens: 0,
+            rejectedPredictionTokens: 0
+          }
+        }
+      }
+
+      const result = extractTokenUsageFromResponseBody(aiSdkResponse)
+
+      expect(result.promptCacheMissTokens).toBe(91)
+      expect(result.promptCacheHitTokens).toBe(0)
+      expect(result.reasoningTokens).toBe(0)
+      expect(result.completionTokens).toBe(38)
+      expect(result.totalOutputTokens).toBe(38)
+      expect(result.totalInputTokens).toBe(91)
+      expect(result.promptCacheWriteTokens).toBe(0)
+      expect(result.model).toBe("gpt-4o")
+    })
+
+    it('should handle AI SDK format with nested usage and cached tokens', () => {
+      const aiSdkResponse = {
+        model: "gpt-4o",
+        usage: {
+          promptTokens: 200,
+          completionTokens: 50,
+          totalTokens: 250
+        },
+        providerMetadata: {
+          openai: {
+            cachedPromptTokens: 100,
+            reasoningTokens: 5,
+            acceptedPredictionTokens: 0,
+            rejectedPredictionTokens: 0
+          }
+        }
+      }
+
+      const result = extractTokenUsageFromResponseBody(aiSdkResponse)
+
+      expect(result.promptCacheMissTokens).toBe(100) // 200 - 100 cached
+      expect(result.promptCacheHitTokens).toBe(100)
+      expect(result.reasoningTokens).toBe(5)
+      expect(result.completionTokens).toBe(45) // 50 - 5 reasoning
+      expect(result.totalOutputTokens).toBe(50) // 45 + 5
+      expect(result.totalInputTokens).toBe(200)
+      expect(result.promptCacheWriteTokens).toBe(0)
+      expect(result.model).toBe("gpt-4o")
+    })
+
+    it('should handle AI SDK format with Anthropic provider metadata', () => {
+      const aiSdkResponse = {
+        model: "claude-3-5-sonnet",
+        usage: {
+          promptTokens: 200,
+          completionTokens: 100,
+          totalTokens: 300
+        },
+        providerMetadata: {
+          anthropic: {
+            cacheReadInputTokens: 50
+          }
+        }
+      }
+
+      const result = extractTokenUsageFromResponseBody(aiSdkResponse)
+
+      expect(result.promptCacheMissTokens).toBe(150) // 200 - 50 cached
+      expect(result.promptCacheHitTokens).toBe(50)
+      expect(result.reasoningTokens).toBe(0) // Anthropic doesn't provide reasoning breakdown yet
+      expect(result.completionTokens).toBe(100)
+      expect(result.totalOutputTokens).toBe(100)
+      expect(result.totalInputTokens).toBe(200)
+      expect(result.promptCacheWriteTokens).toBe(0)
+      expect(result.model).toBe("claude-3-5-sonnet")
+    })
+  })
+
+  it('should throw an error for response body without token usage', () => {
+    // A response object that has no actual token usage data
+    const emptyUsageResponse = {
+      id: 'response-123',
+      model: 'test-model',
+      choices: [{ message: { content: 'Test content' } }]
+    }
+
+    // Should throw an error since there's no token usage information
+    expect(() => extractTokenUsageFromResponseBody(emptyUsageResponse)).toThrow(TokenUsageExtractionError)
+    expect(() => extractTokenUsageFromResponseBody(emptyUsageResponse)).toThrow('Token usage extraction failed: no token usage information in response')
+  })
 })

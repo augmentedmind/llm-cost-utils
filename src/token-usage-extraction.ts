@@ -68,6 +68,39 @@ export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsage
     if (!model && responseBody.message.model) {
       model = responseBody.message.model
     }
+  } else if (responseBody.usage && responseBody.usage.promptTokens !== undefined && responseBody.usage.completionTokens !== undefined) {
+    // Format for AI SDK (Vercel AI SDK)
+    // Format: { model: "gpt-4o", usage: { promptTokens: 91, completionTokens: 38, totalTokens: 129 }, providerMetadata: {...} }
+    
+    // Extract basic token counts from nested usage
+    const aiSdkPromptTokens = responseBody.usage.promptTokens || 0
+    const aiSdkCompletionTokens = responseBody.usage.completionTokens || 0
+    
+    // Extract provider-specific metadata if available
+    let cachedTokens = 0
+    let aiSdkReasoningTokens = 0
+    
+    if (responseBody.providerMetadata?.openai) {
+      // Azure OpenAI / OpenAI provider metadata
+      cachedTokens = responseBody.providerMetadata.openai.cachedPromptTokens || 0
+      aiSdkReasoningTokens = responseBody.providerMetadata.openai.reasoningTokens || 0
+    } else if (responseBody.providerMetadata?.anthropic) {
+      // Anthropic provider metadata
+      cachedTokens = responseBody.providerMetadata.anthropic.cacheReadInputTokens || 0
+    }
+    
+    // Calculate cache miss tokens (prompt tokens that weren't cached)
+    promptCacheMissTokens = Math.max(0, aiSdkPromptTokens - cachedTokens)
+    promptCacheHitTokens = cachedTokens
+    
+    // Handle reasoning vs completion token breakdown
+    reasoningTokens = aiSdkReasoningTokens
+    completionTokens = Math.max(0, aiSdkCompletionTokens - aiSdkReasoningTokens)
+    
+    // Extract model if available
+    if (responseBody.model) {
+      model = responseBody.model
+    }
   } else if (responseBody?.usage) {
     // Handle Mistral format
     if (responseBody.model?.startsWith('mistral-')) {
