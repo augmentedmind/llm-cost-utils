@@ -1,6 +1,6 @@
 {
   "name": "llm-cost-utils",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "LLM token usage extraction and cost calculation utilities",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

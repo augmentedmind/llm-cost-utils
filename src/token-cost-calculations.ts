@@ -71,14 +71,43 @@ export interface TokenUsage {
 }
 
 /**
- * Interface for cost calculation result
+ * Interface for cost breakdown
  */
-export interface RequestCost {
+export interface CostBreakdown {
   inputCost: number
   outputCost: number
   cacheReadCost: number
   cacheWriteCost: number
   totalCost: number
+}
+
+/**
+ * Interface for savings analysis
+ */
+export interface SavingsAnalysis {
+  inputSavings: number
+  totalSavings: number
+  percentSaved: number
+}
+
+/**
+ * Interface for cache statistics
+ */
+export interface CacheStatistics {
+  hitRate: number
+  totalInputTokens: number
+  cachedTokens: number
+  uncachedTokens: number
+}
+
+/**
+ * Interface for comprehensive cost analysis result
+ */
+export interface RequestCostAnalysis {
+  actualCost: CostBreakdown
+  uncachedCost: CostBreakdown
+  savings: SavingsAnalysis
+  cacheStats: CacheStatistics
 }
 
 /**
@@ -107,7 +136,13 @@ export function getModelPricing(model: string): ModelPricing {
 }
 
 /**
- * Calculate the cost for a request based on token usage
+ * Calculate comprehensive cost analysis for a request based on token usage
+ * @param model The model name used for the request
+ * @param promptCacheMissTokens Number of tokens not served from cache
+ * @param totalOutputTokens Total output tokens generated
+ * @param promptCacheHitTokens Number of tokens served from cache (default: 0)
+ * @param promptCacheWriteTokens Number of tokens written to cache (default: 0)
+ * @returns Comprehensive cost analysis including actual cost, uncached cost, savings, and cache stats
  */
 export function calculateRequestCost(
   model: string,
@@ -115,28 +150,58 @@ export function calculateRequestCost(
   totalOutputTokens: number,
   promptCacheHitTokens: number = 0,
   promptCacheWriteTokens: number = 0,
-): RequestCost {
+): RequestCostAnalysis {
   // Get model pricing
   const pricing = getModelPricing(model)
 
-  const inputCost = promptCacheMissTokens * pricing.input_cost_per_token
-  const outputCost = totalOutputTokens * pricing.output_cost_per_token
-
-  // Use cache read cost if available
+  // Calculate actual costs (with caching applied)
+  const actualInputCost = promptCacheMissTokens * pricing.input_cost_per_token
+  const actualOutputCost = totalOutputTokens * pricing.output_cost_per_token
   const cacheReadRate = pricing.cache_read_input_token_cost || 0
   const cacheReadCost = promptCacheHitTokens * cacheReadRate
-
-  // Use cache write cost if available
   const cacheWriteRate = pricing.cache_creation_input_token_cost || 0
   const cacheWriteCost = promptCacheWriteTokens * cacheWriteRate
+  const actualTotalCost = actualInputCost + actualOutputCost + cacheReadCost + cacheWriteCost
 
-  const totalCost = inputCost + outputCost + cacheReadCost + cacheWriteCost
+  // Calculate uncached costs (as if no caching was used)
+  const totalInputTokens = promptCacheMissTokens + promptCacheHitTokens
+  const uncachedInputCost = totalInputTokens * pricing.input_cost_per_token
+  const uncachedOutputCost = totalOutputTokens * pricing.output_cost_per_token
+  const uncachedTotalCost = uncachedInputCost + uncachedOutputCost
+
+  // Calculate savings
+  const inputSavings = uncachedInputCost - actualInputCost
+  const totalSavings = uncachedTotalCost - actualTotalCost
+  const percentSaved = uncachedTotalCost > 0 ? (totalSavings / uncachedTotalCost) * 100 : 0
+
+  // Calculate cache statistics
+  const hitRate = totalInputTokens > 0 ? promptCacheHitTokens / totalInputTokens : 0
 
   return {
-    inputCost,
-    outputCost,
-    cacheReadCost,
-    cacheWriteCost,
-    totalCost,
+    actualCost: {
+      inputCost: actualInputCost,
+      outputCost: actualOutputCost,
+      cacheReadCost,
+      cacheWriteCost,
+      totalCost: actualTotalCost,
+    },
+    uncachedCost: {
+      inputCost: uncachedInputCost,
+      outputCost: uncachedOutputCost,
+      cacheReadCost: 0,
+      cacheWriteCost: 0,
+      totalCost: uncachedTotalCost,
+    },
+    savings: {
+      inputSavings,
+      totalSavings,
+      percentSaved,
+    },
+    cacheStats: {
+      hitRate,
+      totalInputTokens,
+      cachedTokens: promptCacheHitTokens,
+      uncachedTokens: promptCacheMissTokens,
+    },
   }
 }
