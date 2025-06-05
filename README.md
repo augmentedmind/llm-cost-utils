@@ -1,99 +1,54 @@
 # LLM Cost Utils
 
-A utility package for calculating LLM costs and extracting token usage information from API responses.
+A utility library for extracting token usage and calculating LLM costs from API responses.
+
+## Features
+
+- 🚀 **Token Usage Extraction**: Extract standardized token usage from various LLM provider response formats
+- 💰 **Cost Analysis**: Calculate comprehensive cost breakdowns including cache savings
+- 🔧 **OpenAI Cache Support**: Properly handles OpenAI's `prompt_tokens_details.cached_tokens` format
+- 📊 **AI SDK Ready**: Seamless integration with Vercel AI SDK responses
+- 🌐 **Multi-Provider**: Works with OpenAI, Anthropic, Google AI, Mistral, and more
 
 ## Installation
 
 ```bash
-# Install from GitHub
 npm install github:augmentedmind/llm-cost-utils
-
-# Or clone and install locally
-git clone git@github.com:augmentedmind/llm-cost-utils.git
-cd llm-cost-utils
-npm install
 ```
 
-## Usage
+## Quick Start
 
 ### Token Usage Extraction
 
 ```typescript
-import { extractTokenUsageFromResponseBody, extractTokenUsageFromResponse } from 'llm-cost-utils';
+import { extractTokenUsageFromResponseBody } from 'llm-cost-utils';
 
-// Extract token usage from a response body object
-const responseBody = {
+// OpenAI response with cached tokens
+const openaiResponse = {
+  model: "gpt-4o-2024-11-20",
   usage: {
-    prompt_tokens: 100,
-    completion_tokens: 50,
-    total_tokens: 150
-  }
-};
-
-const tokenUsage = extractTokenUsageFromResponseBody(responseBody);
-console.log(tokenUsage);
-// {
-//   promptCacheMissTokens: 100,
-//   promptCacheHitTokens: 0,
-//   reasoningTokens: 0,
-//   completionTokens: 50,
-//   totalOutputTokens: 50,
-//   totalInputTokens: 100,
-//   promptCacheWriteTokens: 0,
-//   model: undefined
-// }
-
-// AI SDK format (Vercel AI SDK)
-const aiSdkResponse = {
-  model: "gpt-4o",
-  usage: {
-    promptTokens: 91,
-    completionTokens: 38,
-    totalTokens: 129
-  },
-  providerMetadata: {
-    openai: {
-      cachedPromptTokens: 0,
-      reasoningTokens: 0,
-      acceptedPredictionTokens: 0,
-      rejectedPredictionTokens: 0
+    prompt_tokens: 2568,
+    completion_tokens: 268,
+    total_tokens: 2836,
+    prompt_tokens_details: {
+      cached_tokens: 1280
     }
   }
 };
 
-const aiSdkTokenUsage = extractTokenUsageFromResponseBody(aiSdkResponse);
-console.log(aiSdkTokenUsage);
+const tokenUsage = extractTokenUsageFromResponseBody(openaiResponse);
+console.log(tokenUsage);
+// Output:
 // {
-//   promptCacheMissTokens: 91,
-//   promptCacheHitTokens: 0,
+//   promptCacheMissTokens: 1288,  // 2568 - 1280
+//   promptCacheHitTokens: 1280,
 //   reasoningTokens: 0,
-//   completionTokens: 38,
-//   totalOutputTokens: 38,
-//   totalInputTokens: 91,
+//   completionTokens: 268,
+//   totalOutputTokens: 268,
+//   totalInputTokens: 2568,       // 1288 + 1280
 //   promptCacheWriteTokens: 0,
-//   model: "gpt-4o"
+//   model: "gpt-4o-2024-11-20"
 // }
-
-// Extract token usage from a raw response body (string or object)
-// This can handle both JSON responses and streaming SSE responses
-// It also extracts the model information when available
-const jsonResponse = '{"model":"gpt-4o","usage":{"prompt_tokens":100,"completion_tokens":50,"total_tokens":150}}';
-const sseResponse = 'data: {"model":"claude-3-haiku-20240307","usage":{"prompt_tokens":100,"completion_tokens":50}}\n\n';
-
-const jsonTokenUsage = extractTokenUsageFromResponse(jsonResponse);
-console.log(jsonTokenUsage);
-// {
-//   promptCacheMissTokens: 100,
-//   promptCacheHitTokens: 0,
-//   reasoningTokens: 0,
-//   completionTokens: 50,
-//   totalOutputTokens: 50,
-//   totalInputTokens: 100,
-//   promptCacheWriteTokens: 0,
-//   model: "gpt-4o"
-// }
-
-const sseTokenUsage = extractTokenUsageFromResponse(sseResponse);
 ```
 
 ### Cost Calculation
@@ -101,189 +56,207 @@ const sseTokenUsage = extractTokenUsageFromResponse(sseResponse);
 ```typescript
 import { calculateRequestCost } from 'llm-cost-utils';
 
-// Calculate cost for a request
-const cost = calculateRequestCost(
+// Calculate comprehensive cost analysis
+const costAnalysis = calculateRequestCost(
   'gpt-4o',                    // model name
-  100,                        // promptCacheMissTokens
-  50,                         // totalOutputTokens
-  0,                          // promptCacheHitTokens (optional)
-  0                           // promptCacheWriteTokens (optional)
+  1288,                        // promptCacheMissTokens
+  268,                         // totalOutputTokens
+  1280,                        // promptCacheHitTokens
+  0                            // promptCacheWriteTokens
 );
 
-console.log(cost);
+console.log(costAnalysis);
+// Output:
 // {
-//   inputCost: 0.03,          // $0.03 for input tokens
-//   outputCost: 0.06,         // $0.06 for output tokens
-//   cacheReadCost: 0,         // $0 for cache reads
-//   cacheWriteCost: 0,        // $0 for cache writes
-//   totalCost: 0.09           // Total cost: $0.09
+//   actualCost: {
+//     inputCost: 0.006440,      // Cost for non-cached input tokens
+//     outputCost: 0.010720,     // Cost for output tokens
+//     cacheReadCost: 0.003200,  // Cost for cached tokens (50% discount)
+//     cacheWriteCost: 0,        // Cost for writing to cache
+//     totalCost: 0.020360       // Total actual cost
+//   },
+//   uncachedCost: {
+//     inputCost: 0.012840,      // What input would cost without caching
+//     outputCost: 0.010720,     // Output cost (same)
+//     cacheReadCost: 0,
+//     cacheWriteCost: 0,
+//     totalCost: 0.023560       // Total without caching
+//   },
+//   savings: {
+//     inputSavings: 0.006400,   // Amount saved on input
+//     totalSavings: 0.003200,   // Total amount saved
+//     percentSaved: 13.58       // Percentage saved
+//   },
+//   cacheStats: {
+//     hitRate: 0.498,           // 49.8% cache hit rate
+//     totalInputTokens: 2568,   // Total input tokens
+//     cachedTokens: 1280,       // Tokens served from cache
+//     uncachedTokens: 1288      // Tokens not in cache
+//   }
 // }
 ```
 
-### Full Example with Response Storage and Model Auto-Detection
+## Complete Example
 
 ```typescript
-import { calculateRequestCost, extractTokenUsageFromResponse } from 'llm-cost-utils';
+import { extractTokenUsageFromResponseBody, calculateRequestCost } from 'llm-cost-utils';
 
-async function processResponse(responseBody: string | object) {
-  // Extract token usage from raw response (includes model when available)
-  const tokenUsage = extractTokenUsageFromResponse(responseBody);
-
-  // Use extracted model if available, or fallback to default
-  const model = tokenUsage.model || 'gpt-4o';
-
-  // Calculate cost using the extracted model
-  const cost = calculateRequestCost(
-    model,
+async function analyzeResponse(responseBody: any) {
+  // Extract token usage
+  const tokenUsage = extractTokenUsageFromResponseBody(responseBody);
+  
+  // Calculate cost analysis
+  const costAnalysis = calculateRequestCost(
+    tokenUsage.model || 'gpt-4o',
     tokenUsage.promptCacheMissTokens,
     tokenUsage.totalOutputTokens,
     tokenUsage.promptCacheHitTokens,
     tokenUsage.promptCacheWriteTokens
   );
-
-  // Store response with metadata
-  const responseWithMetadata = {
-    responseBody,
-    timestamp: new Date().toISOString(),
-    metadata: {
-      model,
-      cost,
-      tokenUsage
-    }
-  };
-
-  // Save to file or database
-  await saveToStorage(responseWithMetadata);
-}
-```
-
-### Integration with AI SDK (Vercel AI SDK)
-
-When using the Vercel AI SDK, you can easily integrate `llm-cost-utils` using the `onFinish` callback:
-
-```typescript
-import { streamObject, generateObject } from 'ai';
-import { calculateRequestCost, extractTokenUsageFromResponse } from 'llm-cost-utils';
-
-// Streaming example
-async function streamingExample() {
-  let finalUsage = null;
-  let finalProviderMetadata = null;
-
-  const { partialObjectStream } = await streamObject({
-    model: yourModel,
-    messages: yourMessages,
-    schema: yourSchema,
-    onFinish({ usage, providerMetadata }) {
-      // Capture usage data from AI SDK
-      finalUsage = usage;
-      finalProviderMetadata = providerMetadata;
-    }
-  });
-
-  // Process stream...
-  for await (const partialObject of partialObjectStream) {
-    // Handle partial results
-    console.log(partialObject);
-  }
-
-  // Calculate cost using AI SDK format
-  if (finalUsage) {
-    const aiSdkUsageData = {
-      model: "gpt-4o", // Your model name
-      usage: finalUsage,
-      providerMetadata: finalProviderMetadata
-    };
-
-    // Extract usage and calculate cost
-    const tokenUsage = extractTokenUsageFromResponse(aiSdkUsageData);
-    const cost = calculateRequestCost(
-      tokenUsage.model || "gpt-4o",
-      tokenUsage.promptCacheMissTokens,
-      tokenUsage.totalOutputTokens,
-      tokenUsage.promptCacheHitTokens,
-      tokenUsage.promptCacheWriteTokens
-    );
-
-    console.log('Cost:', cost);
-    console.log('Token Usage:', tokenUsage);
-  }
-}
-
-// Non-streaming example
-async function nonStreamingExample() {
-  const { object, usage, providerMetadata } = await generateObject({
-    model: yourModel,
-    messages: yourMessages,
-    schema: yourSchema
-  });
-
-  // Create AI SDK format for llm-cost-utils
-  const aiSdkUsageData = {
-    model: "gpt-4o", // Your model name
-    usage: usage,
-    providerMetadata
-  };
-
-  // Extract usage and calculate cost
-  const tokenUsage = extractTokenUsageFromResponse(aiSdkUsageData);
-  const cost = calculateRequestCost(
-    tokenUsage.model || "gpt-4o",
-    tokenUsage.promptCacheMissTokens,
-    tokenUsage.totalOutputTokens,
-    tokenUsage.promptCacheHitTokens,
-    tokenUsage.promptCacheWriteTokens
-  );
-
+  
   return {
-    result: object,
-    cost,
-    tokenUsage
+    tokenUsage,
+    costAnalysis,
+    summary: {
+      model: tokenUsage.model,
+      totalCost: costAnalysis.actualCost.totalCost,
+      savings: costAnalysis.savings.totalSavings,
+      cacheHitRate: costAnalysis.cacheStats.hitRate
+    }
   };
 }
 ```
 
-### Why Use onFinish with AI SDK?
+## AI SDK Integration
 
-The AI SDK's `onFinish` callback provides the cleanest way to capture usage data:
+```typescript
+import { streamObject } from 'ai';
+import { extractTokenUsageFromResponseBody, calculateRequestCost } from 'llm-cost-utils';
 
-- **Consistent Format**: Always returns `{ promptTokens, completionTokens, totalTokens }`
-- **Provider Metadata**: Includes provider-specific details like cached tokens and reasoning tokens
-- **Real-time**: Captures data immediately when the request completes
-- **Works with Streaming**: Available for both streaming and non-streaming requests
+let finalTokenUsage = null;
+let finalCostAnalysis = null;
 
-## Supported Models
+const { partialObjectStream } = await streamObject({
+  model: yourModel,
+  messages: yourMessages,
+  schema: yourSchema,
+  onFinish({ usage, providerMetadata }) {
+    // Extract usage when streaming completes
+    const aiSdkUsageData = {
+      model: "gpt-4o",
+      usage,
+      providerMetadata
+    };
+    
+    finalTokenUsage = extractTokenUsageFromResponseBody(aiSdkUsageData);
+    finalCostAnalysis = calculateRequestCost(
+      finalTokenUsage.model || "gpt-4o",
+      finalTokenUsage.promptCacheMissTokens,
+      finalTokenUsage.totalOutputTokens,
+      finalTokenUsage.promptCacheHitTokens,
+      finalTokenUsage.promptCacheWriteTokens
+    );
+  }
+});
 
-The package includes pricing information for various LLM models including:
-- OpenAI models
-- Azure OpenAI models
-- Anthropic models
-- Google AI models
-- Mistral models
+// Process the stream...
+for await (const partialObject of partialObjectStream) {
+  console.log(partialObject);
+}
+
+// Usage data is now available
+console.log('Token Usage:', finalTokenUsage);
+console.log('Cost Analysis:', finalCostAnalysis);
+```
+
+## Supported Providers
+
+| Provider | Token Usage | Cached Tokens | Reasoning Tokens | Cost Calculation |
+|----------|-------------|---------------|------------------|------------------|
+| OpenAI | ✅ | ✅ | ✅ | ✅ |
+| Azure OpenAI | ✅ | ✅ | ✅ | ✅ |
+| Anthropic | ✅ | ✅ | ✅ | ✅ |
+| Google AI | ✅ | ✅ | ✅ | ✅ |
+| Mistral | ✅ | ❌ | ❌ | ✅ |
+| **AI SDK** | ✅ | ✅ | ✅ | ✅ |
+
+> **Note**: AI SDK (Vercel AI SDK) is supported as a response format that wraps any of the above providers
+
+## Token Usage Output Format
+
+All extraction functions return a standardized `TokenUsage` object:
+
+```typescript
+interface TokenUsage {
+  promptCacheMissTokens: number    // New input tokens (not from cache)
+  promptCacheHitTokens: number     // Input tokens served from cache
+  reasoningTokens: number          // Output tokens for reasoning (o1 models)
+  completionTokens: number         // Output tokens for completion
+  totalOutputTokens: number        // Total output tokens (reasoning + completion)
+  totalInputTokens: number         // Total input tokens (cache miss + cache hit)
+  promptCacheWriteTokens: number   // Tokens written to cache
+  model?: string                   // Model name (when available)
+}
+```
+
+## Cost Analysis Output Format
+
+The `calculateRequestCost` function returns detailed cost breakdown:
+
+```typescript
+interface RequestCostAnalysis {
+  actualCost: {
+    inputCost: number        // Cost for non-cached input tokens
+    outputCost: number       // Cost for output tokens
+    cacheReadCost: number    // Cost for reading cached tokens (discounted)
+    cacheWriteCost: number   // Cost for writing tokens to cache
+    totalCost: number        // Total actual cost
+  }
+  uncachedCost: {
+    inputCost: number        // What input would cost without caching
+    outputCost: number       // Output cost (same as actual)
+    totalCost: number        // Total cost if no caching was used
+  }
+  savings: {
+    inputSavings: number     // Amount saved on input costs
+    totalSavings: number     // Total amount saved by caching
+    percentSaved: number     // Percentage of cost saved
+  }
+  cacheStats: {
+    hitRate: number          // Cache hit rate (0-1)
+    totalInputTokens: number // Total input tokens processed
+    cachedTokens: number     // Tokens served from cache
+    uncachedTokens: number   // Tokens not in cache
+  }
+}
+```
+
+## Model Pricing Updates
+
+To get the latest model pricing, run:
+
+```bash
+npm run download-model-prices
+```
+
+This updates the `model-prices.json` file with current pricing data. For new model support, please [create an issue](https://github.com/augmentedmind/llm-cost-utils/issues) with the model name and pricing information.
+
+## Support
+
+For issues, questions, or feature requests, please [create an issue](https://github.com/augmentedmind/llm-cost-utils/issues) or start a [discussion](https://github.com/augmentedmind/llm-cost-utils/discussions) in the repository.
+
+When reporting issues, please include:
+- A minimal reproducible example
+- The exact input and expected vs actual output
+- The model and provider you're using
 
 ## Development
 
 ```bash
-# Install dependencies
 npm install
-
-# Build the package
 npm run build
-
-# Run tests
 npm test
-
-# Watch mode for development
-npm run dev
 ```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests
-5. Submit a pull request
 
 ## License
 
