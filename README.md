@@ -133,10 +133,30 @@ async function analyzeResponse(responseBody: any) {
 import { streamObject } from 'ai';
 import { extractTokenUsageFromResponseBody, calculateRequestCost } from 'llm-cost-utils';
 
-const { partialObjectStream, object, usage, providerMetadata } = await streamObject({
+let finalTokenUsage = null;
+let finalCostAnalysis = null;
+
+const { partialObjectStream } = await streamObject({
   model: yourModel,
   messages: yourMessages,
-  schema: yourSchema
+  schema: yourSchema,
+  onFinish({ usage, providerMetadata }) {
+    // Extract usage when streaming completes
+    const aiSdkUsageData = {
+      model: "gpt-4o",
+      usage,
+      providerMetadata
+    };
+    
+    finalTokenUsage = extractTokenUsageFromResponseBody(aiSdkUsageData);
+    finalCostAnalysis = calculateRequestCost(
+      finalTokenUsage.model || "gpt-4o",
+      finalTokenUsage.promptCacheMissTokens,
+      finalTokenUsage.totalOutputTokens,
+      finalTokenUsage.promptCacheHitTokens,
+      finalTokenUsage.promptCacheWriteTokens
+    );
+  }
 });
 
 // Process the stream...
@@ -144,21 +164,9 @@ for await (const partialObject of partialObjectStream) {
   console.log(partialObject);
 }
 
-// Extract usage after completion
-const aiSdkUsageData = {
-  model: "gpt-4o",
-  usage,
-  providerMetadata
-};
-
-const tokenUsage = extractTokenUsageFromResponseBody(aiSdkUsageData);
-const costAnalysis = calculateRequestCost(
-  tokenUsage.model || "gpt-4o",
-  tokenUsage.promptCacheMissTokens,
-  tokenUsage.totalOutputTokens,
-  tokenUsage.promptCacheHitTokens,
-  tokenUsage.promptCacheWriteTokens
-);
+// Usage data is now available
+console.log('Token Usage:', finalTokenUsage);
+console.log('Cost Analysis:', finalCostAnalysis);
 ```
 
 ## Supported Providers
