@@ -2,6 +2,26 @@
 
 A utility package for calculating LLM costs and extracting token usage information from API responses.
 
+## Features
+
+- 🚀 **Enhanced Token Usage Extraction**: Supports multiple LLM provider formats
+- 💰 **Accurate Cost Calculation**: Handles cache hits, cache writes, and reasoning tokens
+- 🔧 **OpenAI Cache Support**: Properly extracts cached tokens from OpenAI's latest response format
+- 📊 **AI SDK Integration**: Seamless integration with Vercel AI SDK
+- 🌐 **Multi-Provider Support**: Works with OpenAI, Anthropic, Google AI, Mistral, and more
+
+## Recent Updates
+
+### OpenAI Cached Tokens Fix (Latest)
+- ✅ **Fixed**: OpenAI cached tokens extraction from `usage.prompt_tokens_details.cached_tokens`
+- ✅ **Enhanced**: Proper calculation of `promptCacheMissTokens` (total - cached)
+- ✅ **Backward Compatible**: Still supports older cache formats from other providers
+
+### Token Usage Extraction Improvements
+- Better handling of different provider response formats
+- More accurate cache hit/miss token calculations
+- Enhanced support for reasoning tokens and prediction tokens
+
 ## Installation
 
 ```bash
@@ -18,10 +38,38 @@ npm install
 
 ### Token Usage Extraction
 
+The library now properly handles OpenAI's cached tokens format and other provider formats:
+
 ```typescript
 import { extractTokenUsageFromResponseBody, extractTokenUsageFromResponse } from 'llm-cost-utils';
 
-// Extract token usage from a response body object
+// OpenAI response with cached tokens (NEW FORMAT)
+const openaiResponse = {
+  model: "gpt-4o",
+  usage: {
+    prompt_tokens: 2568,
+    completion_tokens: 571,
+    total_tokens: 3139,
+    prompt_tokens_details: {
+      cached_tokens: 1280  // ✅ Now properly extracted!
+    }
+  }
+};
+
+const openaiTokenUsage = extractTokenUsageFromResponseBody(openaiResponse);
+console.log(openaiTokenUsage);
+// {
+//   promptCacheMissTokens: 1288,  // 2568 - 1280
+//   promptCacheHitTokens: 1280,   // ✅ Correctly extracted
+//   reasoningTokens: 0,
+//   completionTokens: 571,
+//   totalOutputTokens: 571,
+//   totalInputTokens: 2568,       // 1288 + 1280
+//   promptCacheWriteTokens: 0,
+//   model: "gpt-4o"
+// }
+
+// Standard response without cached tokens
 const responseBody = {
   usage: {
     prompt_tokens: 100,
@@ -252,14 +300,51 @@ The AI SDK's `onFinish` callback provides the cleanest way to capture usage data
 - **Real-time**: Captures data immediately when the request completes
 - **Works with Streaming**: Available for both streaming and non-streaming requests
 
-## Supported Models
+## Supported Models and Providers
 
-The package includes pricing information for various LLM models including:
-- OpenAI models
-- Azure OpenAI models
-- Anthropic models
-- Google AI models
-- Mistral models
+The package includes pricing information and token usage extraction for various LLM models:
+
+### ✅ Fully Supported Providers
+- **OpenAI**: Including cached tokens from `prompt_tokens_details.cached_tokens`
+- **Azure OpenAI**: Full pricing and cache support  
+- **Anthropic**: Cache reads, reasoning tokens
+- **Google AI**: Cached tokens and reasoning support
+- **Mistral**: Standard token usage extraction
+
+### 🔧 Token Usage Formats Supported
+- OpenAI format: `usage.prompt_tokens_details.cached_tokens`
+- Anthropic format: `usage.cache_read_input_tokens`
+- AI SDK format: `providerMetadata.openai.cachedPromptTokens`
+- Standard format: Basic `prompt_tokens`, `completion_tokens`
+
+### 💰 Cost Calculation Features
+- Cache read costs (discounted rates for cached tokens)
+- Cache write costs (one-time caching fees)
+- Reasoning token costs (o1 models)
+- Standard input/output token costs
+
+## Troubleshooting
+
+### OpenAI Cached Tokens Not Showing?
+
+If you're seeing `promptCacheHitTokens: 0` but know your requests are using cached tokens:
+
+1. **Check OpenAI Response Format**: Look for `usage.prompt_tokens_details.cached_tokens` in your API responses
+2. **Update Library**: Make sure you're using the latest version with the cached tokens fix
+3. **Verify Response Structure**: Use `extractTokenUsageFromResponse` to see what's being extracted
+
+```typescript
+// Debug token extraction
+const debugUsage = extractTokenUsageFromResponse(yourResponse);
+console.log('Extracted usage:', debugUsage);
+console.log('Cache hits:', debugUsage.promptCacheHitTokens);
+```
+
+### Cost Calculations Seem Wrong?
+
+- **Cache costs**: Cached tokens typically cost 50% less than regular prompt tokens
+- **Model names**: Ensure you're using the exact model name for accurate pricing
+- **Token types**: Different token types (input/output/cache/reasoning) have different costs
 
 ## Development
 
