@@ -233,9 +233,13 @@ interface RequestCostAnalysis {
 
 ## Model Pricing Updates
 
-To get the latest model pricing, update the `model-prices.json` file in `src/data/`. The library uses this file to calculate accurate costs for each model.
+To get the latest model pricing, run:
 
-For pricing updates or new model support, please [create an issue](https://github.com/augmentedmind/llm-cost-utils/issues) with the model name and pricing information.
+```bash
+npm run download-model-prices
+```
+
+This updates the `model-prices.json` file with current pricing data. For new model support, please [create an issue](https://github.com/augmentedmind/llm-cost-utils/issues) with the model name and pricing information.
 
 ## Support
 
