@@ -178,6 +178,9 @@ console.log('Cost Analysis:', finalCostAnalysis);
 | Anthropic | ✅ | ✅ | ✅ | ✅ |
 | Google AI | ✅ | ✅ | ✅ | ✅ |
 | Mistral | ✅ | ❌ | ❌ | ✅ |
+| **AI SDK** | ✅ | ✅ | ✅ | ✅ |
+
+> **Note**: AI SDK (Vercel AI SDK) is supported as a response format that wraps any of the above providers
 
 ## Token Usage Output Format
 
@@ -228,29 +231,20 @@ interface RequestCostAnalysis {
 }
 ```
 
-## Troubleshooting
+## Model Pricing Updates
 
-### OpenAI Cached Tokens Not Detected?
+To get the latest model pricing, update the `model-prices.json` file in `src/data/`. The library uses this file to calculate accurate costs for each model.
 
-Make sure your OpenAI responses include the `prompt_tokens_details` field:
+For pricing updates or new model support, please [create an issue](https://github.com/augmentedmind/llm-cost-utils/issues) with the model name and pricing information.
 
-```json
-{
-  "usage": {
-    "prompt_tokens": 2568,
-    "completion_tokens": 268,
-    "prompt_tokens_details": {
-      "cached_tokens": 1280
-    }
-  }
-}
-```
+## Support
 
-### Cost Seems Wrong?
+For issues, questions, or feature requests, please [create an issue](https://github.com/augmentedmind/llm-cost-utils/issues) or start a [discussion](https://github.com/augmentedmind/llm-cost-utils/discussions) in the repository.
 
-- **Cache costs**: Cached tokens typically cost 50% of regular input tokens
-- **Model names**: Use exact model names for accurate pricing
-- **Token breakdown**: Different token types have different rates
+When reporting issues, please include:
+- A minimal reproducible example
+- The exact input and expected vs actual output
+- The model and provider you're using
 
 ## Development
 
