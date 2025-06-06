@@ -654,6 +654,62 @@ describe('Token Usage Extraction', () => {
       expect(result.promptCacheWriteTokens).toBe(0)
       expect(result.model).toBe("claude-3-5-sonnet")
     })
+
+    it('should handle AI SDK format with Anthropic cache creation tokens', () => {
+      const aiSdkResponse = {
+        model: "claude-sonnet-4-20250514",
+        usage: {
+          promptTokens: 27,
+          completionTokens: 40,
+          totalTokens: 67
+        },
+        providerMetadata: {
+          anthropic: {
+            cacheCreationInputTokens: 8529,
+            cacheReadInputTokens: 0
+          }
+        }
+      }
+
+      const result = extractTokenUsageFromResponseBody(aiSdkResponse)
+
+      expect(result.promptCacheMissTokens).toBe(27) // 27 - 0 cached
+      expect(result.promptCacheHitTokens).toBe(0)
+      expect(result.promptCacheWriteTokens).toBe(8529) // Cache write tokens from metadata
+      expect(result.reasoningTokens).toBe(0)
+      expect(result.completionTokens).toBe(40)
+      expect(result.totalOutputTokens).toBe(40)
+      expect(result.totalInputTokens).toBe(8556) // 27 + 0 + 8529
+      expect(result.model).toBe("claude-sonnet-4-20250514")
+    })
+
+    it('should handle AI SDK format with both Anthropic cache read and write tokens', () => {
+      const aiSdkResponse = {
+        model: "claude-sonnet-4-20250514",
+        usage: {
+          promptTokens: 100,
+          completionTokens: 50,
+          totalTokens: 150
+        },
+        providerMetadata: {
+          anthropic: {
+            cacheCreationInputTokens: 2000,
+            cacheReadInputTokens: 50
+          }
+        }
+      }
+
+      const result = extractTokenUsageFromResponseBody(aiSdkResponse)
+
+      expect(result.promptCacheMissTokens).toBe(50) // 100 - 50 cached
+      expect(result.promptCacheHitTokens).toBe(50)
+      expect(result.promptCacheWriteTokens).toBe(2000) // Cache write tokens
+      expect(result.reasoningTokens).toBe(0)
+      expect(result.completionTokens).toBe(50)
+      expect(result.totalOutputTokens).toBe(50)
+      expect(result.totalInputTokens).toBe(2100) // 50 + 50 + 2000
+      expect(result.model).toBe("claude-sonnet-4-20250514")
+    })
   })
 
   it('should throw an error for response body without token usage', () => {

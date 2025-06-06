@@ -87,6 +87,8 @@ export function extractTokenUsageFromResponseBody(responseBody: any): TokenUsage
     } else if (responseBody.providerMetadata?.anthropic) {
       // Anthropic provider metadata
       cachedTokens = responseBody.providerMetadata.anthropic.cacheReadInputTokens || 0
+      // Extract cache write tokens for Anthropic
+      promptCacheWriteTokens = responseBody.providerMetadata.anthropic.cacheCreationInputTokens || 0
     }
     
     // Calculate cache miss tokens (prompt tokens that weren't cached)
