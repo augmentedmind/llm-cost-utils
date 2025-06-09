@@ -14188,4 +14188,4 @@ export const modelPricesData = {
     "litellm_provider": "featherless_ai",
     "mode": "chat"
   }
-};
+} as const;

@@ -5,9 +5,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getModelPricing = getModelPricing;
 exports.calculateRequestCost = calculateRequestCost;
 // Import the model prices data
-const model_prices_js_1 = require("./data/model-prices.js");
+const model_prices_1 = require("./data/model-prices");
 // Cast the imported data to the correct type
-const modelPricesData = model_prices_js_1.modelPricesData;
+const modelPricesData = model_prices_1.modelPricesData;
 /**
  * Get the model pricing information for a specific model
  * @throws Error if model pricing is not found

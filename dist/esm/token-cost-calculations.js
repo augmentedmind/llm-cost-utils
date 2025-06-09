@@ -1,7 +1,7 @@
 // token-cost-calculations.ts
 // Calculates token costs for LLM requests based on model and token usage
 // Import the model prices data
-import { modelPricesData as rawModelPricesData } from './data/model-prices.js';
+import { modelPricesData as rawModelPricesData } from './data/model-prices';
 // Cast the imported data to the correct type
 const modelPricesData = rawModelPricesData;
 /**

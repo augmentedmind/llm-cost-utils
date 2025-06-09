@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { calculateRequestCost, getModelPricing } from '../../src/token-cost-calculations'
 
 // Mock the model prices data
-vi.mock('../../src/data/model-prices.js', () => ({
+vi.mock('../../src/data/model-prices', () => ({
   modelPricesData: {
     'gpt-4': {
       input_cost_per_token: 0.00003,
