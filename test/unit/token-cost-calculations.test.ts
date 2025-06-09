@@ -1,33 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { calculateRequestCost, getModelPricing } from '../../src/token-cost-calculations'
-
-// Mock the model prices data
-vi.mock('../../src/data/model-prices.json', () => ({
-  default: {
-    'gpt-4': {
-      input_cost_per_token: 0.00003,
-      output_cost_per_token: 0.00006,
-    },
-    'openai/gpt-4-turbo': {
-      input_cost_per_token: 0.00001,
-      output_cost_per_token: 0.00003,
-    },
-    'mistral/mistral-small-latest': {
-      input_cost_per_token: 0.000001,
-      output_cost_per_token: 0.000002,
-    },
-    'claude-3-opus-20240229': {
-      input_cost_per_token: 0.000015,
-      output_cost_per_token: 0.000075,
-      cache_read_input_token_cost: 0.000003,
-      cache_creation_input_token_cost: 0.00001875,
-    },
-    'gemini-2.0-flash': {
-      input_cost_per_token: 0.000001,
-      output_cost_per_token: 0.000002,
-    },
-  },
-}))
 
 describe('getModelPricing', () => {
   it('should return pricing for exact model match', () => {
@@ -36,13 +8,13 @@ describe('getModelPricing', () => {
     expect(pricing.output_cost_per_token).toBe(0.00006)
   })
 
-  it('should return pricing for provider-prefixed model match', () => {
+  it('should automatically map models to their default providers', () => {
     const pricing = getModelPricing('mistral-small-latest')
-    expect(pricing.input_cost_per_token).toBe(0.000001)
-    expect(pricing.output_cost_per_token).toBe(0.000002)
+    expect(pricing.input_cost_per_token).toBe(1e-7)
+    expect(pricing.output_cost_per_token).toBe(3e-7)
   })
 
-  it('should return pricing for provider-prefixed model with different provider', () => {
+  it('should return pricing for gpt-4-turbo', () => {
     const pricing = getModelPricing('gpt-4-turbo')
     expect(pricing.input_cost_per_token).toBe(0.00001)
     expect(pricing.output_cost_per_token).toBe(0.00003)
@@ -56,6 +28,13 @@ describe('getModelPricing', () => {
     const pricing = getModelPricing('GPT-4')
     expect(pricing.input_cost_per_token).toBe(0.00003)
     expect(pricing.output_cost_per_token).toBe(0.00006)
+  })
+
+  it('should map mistral models to mistral provider automatically', () => {
+    const pricing = getModelPricing('mistral-small-latest')
+    // Should find mistral/mistral-small-latest, not azure_ai/mistral-small
+    expect(pricing.input_cost_per_token).toBe(1e-7)
+    expect(pricing.output_cost_per_token).toBe(3e-7)
   })
 })
 
@@ -82,17 +61,23 @@ describe('calculateRequestCost', () => {
 
   it('should calculate comprehensive cost analysis with cache tokens', () => {
     const analysis = calculateRequestCost('claude-3-opus-20240229', 1000, 500, 200, 300)
+    // Using real pricing from model-prices.ts:
+    // input_cost_per_token: 0.000015
+    // output_cost_per_token: 0.000075
+    // cache_read_input_token_cost: 0.0000015
+    // cache_creation_input_token_cost: 0.00001875
+    
     // 1000 * 0.000015 = 0.015 cost for input (cache miss)
     // 500 * 0.000075 = 0.0375 cost for output
-    // 200 * 0.000003 = 0.0006 cost for cache read
+    // 200 * 0.0000015 = 0.0003 cost for cache read
     // 300 * 0.00001875 = 0.005625 cost for cache write
     
     // Actual costs (with caching applied)
     expect(analysis.actualCost.inputCost).toBeCloseTo(0.015, 6)
     expect(analysis.actualCost.outputCost).toBeCloseTo(0.0375, 6)
-    expect(analysis.actualCost.cacheReadCost).toBeCloseTo(0.0006, 6)
+    expect(analysis.actualCost.cacheReadCost).toBeCloseTo(0.0003, 6)
     expect(analysis.actualCost.cacheWriteCost).toBeCloseTo(0.005625, 6)
-    expect(analysis.actualCost.totalCost).toBeCloseTo(0.058725, 5)
+    expect(analysis.actualCost.totalCost).toBeCloseTo(0.058425, 5)
     
     // Uncached costs (as if no caching was used)
     // Total input tokens: 1000 + 200 = 1200
@@ -106,7 +91,7 @@ describe('calculateRequestCost', () => {
     // Savings analysis
     const expectedInputSavings = 0.018 - 0.015  // uncached input - actual input
     expect(analysis.savings.inputSavings).toBeCloseTo(expectedInputSavings, 6)
-    const expectedTotalSavings = 0.0555 - 0.058725  // uncached total - actual total (note: cache write cost is added)
+    const expectedTotalSavings = 0.0555 - 0.058425  // uncached total - actual total (note: cache write cost is added)
     expect(analysis.savings.totalSavings).toBeCloseTo(expectedTotalSavings, 5)
     const expectedPercentSaved = (expectedTotalSavings / 0.0555) * 100
     expect(analysis.savings.percentSaved).toBeCloseTo(expectedPercentSaved, 3)
@@ -121,18 +106,18 @@ describe('calculateRequestCost', () => {
   it('should handle 100% cache hit scenario', () => {
     const analysis = calculateRequestCost('claude-3-opus-20240229', 0, 500, 1000, 0)
     
-    // All tokens served from cache
+    // All tokens served from cache (using real pricing: cache_read_input_token_cost: 0.0000015)
     expect(analysis.actualCost.inputCost).toBe(0)
-    expect(analysis.actualCost.cacheReadCost).toBeCloseTo(0.003, 6) // 1000 * 0.000003
-    expect(analysis.actualCost.totalCost).toBeCloseTo(0.0405, 6) // output + cache read
+    expect(analysis.actualCost.cacheReadCost).toBeCloseTo(0.0015, 6) // 1000 * 0.0000015
+    expect(analysis.actualCost.totalCost).toBeCloseTo(0.039, 6) // output + cache read
     
     // Uncached would have cost more
     expect(analysis.uncachedCost.inputCost).toBeCloseTo(0.015, 6) // 1000 * 0.000015
     expect(analysis.uncachedCost.totalCost).toBeCloseTo(0.0525, 6) // input + output
     
-    // Should show significant savings
-    expect(analysis.savings.totalSavings).toBeCloseTo(0.012, 6)
-    expect(analysis.savings.percentSaved).toBeCloseTo(22.857, 3) // roughly 22.86%
+    // Should show significant savings  
+    expect(analysis.savings.totalSavings).toBeCloseTo(0.0135, 6)
+    expect(analysis.savings.percentSaved).toBeCloseTo(25.714, 3) // roughly 25.71%
     
     // Perfect cache hit rate
     expect(analysis.cacheStats.hitRate).toBe(1.0)

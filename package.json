@@ -8,7 +8,8 @@
   "type": "module",
   "files": [
     "dist",
-    "src"
+    "src",
+    "scripts"
   ],
   "exports": {
     ".": {
@@ -26,7 +27,7 @@
     "url": "https://github.com/augmentedmind/llm-cost-utils/issues"
   },
   "scripts": {
-    "prepare": "npm run build",
+    "prepare": "npm run download-model-prices && npm run build",
     "build": "npm run build:esm && npm run build:cjs && npm run build:types",
     "build:esm": "tsc --project tsconfig.esm.json",
     "build:cjs": "tsc --project tsconfig.cjs.json && node scripts/build-cjs-package.js",
