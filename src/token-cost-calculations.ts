@@ -2,7 +2,7 @@
 // Calculates token costs for LLM requests based on model and token usage
 
 // Import the model prices data
-import { modelPricesData as rawModelPricesData } from './data/model-prices';
+import { modelPricesData as rawModelPricesData } from './data/model-prices.js';
 
 // Define the type for the model pricing map
 type ModelPricingRawMap = Record<string, ModelPricingRaw>
