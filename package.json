@@ -8,7 +8,8 @@
   "type": "module",
   "files": [
     "dist",
-    "src"
+    "src",
+    "scripts"
   ],
   "exports": {
     ".": {
