@@ -110,22 +110,61 @@ export interface RequestCostAnalysis {
 }
 
 /**
+ * Map a model name to its default provider if no provider is specified
+ */
+function mapToDefaultProvider(model: string): string {
+  const normalizedModel = model.toLowerCase().trim()
+  
+  // If model already has a provider prefix, return as-is
+  if (normalizedModel.includes('/')) {
+    return model
+  }
+  
+  // Map models to their default providers based on naming patterns
+  if (normalizedModel.startsWith('mistral-')) {
+    return `mistral/${model}`
+  }
+  
+  if (normalizedModel.startsWith('claude-')) {
+    return model // Claude models in the data are typically without provider prefix
+  }
+  
+  if (normalizedModel.startsWith('gpt-') || normalizedModel.startsWith('o1-') || normalizedModel.startsWith('text-')) {
+    return model // OpenAI models are typically without provider prefix
+  }
+  
+  if (normalizedModel.startsWith('gemini-')) {
+    return model // Google models are typically without provider prefix  
+  }
+  
+  // For other models, return as-is and let the existing matching logic handle it
+  return model
+}
+
+/**
  * Get the model pricing information for a specific model
  * @throws Error if model pricing is not found
  */
 export function getModelPricing(model: string): ModelPricing {
-  // Normalize model name (remove any version suffixes, etc.)
-  const normalizedModel = model.toLowerCase().trim()
+  // First, try to map to default provider if needed
+  const mappedModel = mapToDefaultProvider(model)
+  const normalizedModel = mappedModel.toLowerCase().trim()
 
   // Try to find an exact match
   if (normalizedModel in modelPricesData) {
     return modelPricesData[normalizedModel] as ModelPricing
   }
 
+  // If mapped model wasn't found, try original model name for backwards compatibility
+  const originalNormalized = model.toLowerCase().trim()
+  if (originalNormalized in modelPricesData) {
+    return modelPricesData[originalNormalized] as ModelPricing
+  }
+
   // Try to find a match by comparing the model name without provider prefix
   for (const knownModel of Object.keys(modelPricesData)) {
     const knownModelWithoutProvider = knownModel.split('/').pop()?.toLowerCase()
-    if (knownModelWithoutProvider === normalizedModel) {
+    if (knownModelWithoutProvider === originalNormalized) {
       return modelPricesData[knownModel] as ModelPricing
     }
   }
