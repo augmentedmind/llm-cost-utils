@@ -22,6 +22,13 @@ export interface ModelPricingRaw {
   cache_creation_input_token_cost?: number
   input_cost_per_audio_token?: number
   output_cost_per_audio_token?: number
+  
+  // Existing tiered pricing attributes
+  input_cost_per_token_above_200k_tokens?: number
+  output_cost_per_token_above_200k_tokens?: number
+  input_cost_per_token_above_128k_tokens?: number
+  output_cost_per_token_above_128k_tokens?: number
+  
   litellm_provider?: string
   mode?: string
   supports_function_calling?: boolean
@@ -44,6 +51,12 @@ export interface ModelPricing {
   output_cost_per_token: number
   cache_read_input_token_cost?: number
   cache_creation_input_token_cost?: number
+  
+  // Existing tiered pricing attributes
+  input_cost_per_token_above_200k_tokens?: number
+  output_cost_per_token_above_200k_tokens?: number
+  input_cost_per_token_above_128k_tokens?: number
+  output_cost_per_token_above_128k_tokens?: number
 }
 
 // Cast the imported data to the correct type
@@ -110,6 +123,53 @@ export interface RequestCostAnalysis {
 }
 
 /**
+ * Calculate tiered cost for tokens based on existing tier attributes
+ * For output tokens, the tier is typically determined by the input context size
+ * @param tokens Number of tokens to calculate cost for
+ * @param baseCost Base cost per token
+ * @param above200kCost Cost per token above 200k threshold (optional)
+ * @param above128kCost Cost per token above 128k threshold (optional)
+ * @param contextTokens Total input context tokens (for output pricing tier determination)
+ * @returns Total cost for the tokens
+ */
+function calculateTieredTokenCost(
+  tokens: number,
+  baseCost: number,
+  above200kCost?: number,
+  above128kCost?: number,
+  contextTokens?: number
+): number {
+  // If no tier pricing is defined, use flat rate
+  if (above200kCost === undefined && above128kCost === undefined) {
+    return tokens * baseCost
+  }
+
+  // Use contextTokens for tier determination if provided, otherwise use tokens
+  const tierDeterminantTokens = contextTokens !== undefined ? contextTokens : tokens
+
+  // Handle 200k tier (most common for Gemini models)
+  if (above200kCost !== undefined) {
+    if (tierDeterminantTokens <= 200000) {
+      return tokens * baseCost
+    } else {
+      return tokens * above200kCost
+    }
+  }
+
+  // Handle 128k tier (common for Claude and other models)
+  if (above128kCost !== undefined) {
+    if (tierDeterminantTokens <= 128000) {
+      return tokens * baseCost
+    } else {
+      return tokens * above128kCost
+    }
+  }
+
+  // Fallback to base cost
+  return tokens * baseCost
+}
+
+/**
  * Map a model name to its default provider if no provider is specified
  */
 function mapToDefaultProvider(model: string): string {
@@ -150,27 +210,43 @@ export function getModelPricing(model: string): ModelPricing {
   const mappedModel = mapToDefaultProvider(model)
   const normalizedModel = mappedModel.toLowerCase().trim()
 
+  let rawPricing: ModelPricingRaw | undefined
+
   // Try to find an exact match
   if (normalizedModel in modelPricesData) {
-    return modelPricesData[normalizedModel] as ModelPricing
-  }
-
-  // If mapped model wasn't found, try original model name for backwards compatibility
-  const originalNormalized = model.toLowerCase().trim()
-  if (originalNormalized in modelPricesData) {
-    return modelPricesData[originalNormalized] as ModelPricing
-  }
-
-  // Try to find a match by comparing the model name without provider prefix
-  for (const knownModel of Object.keys(modelPricesData)) {
-    const knownModelWithoutProvider = knownModel.split('/').pop()?.toLowerCase()
-    if (knownModelWithoutProvider === originalNormalized) {
-      return modelPricesData[knownModel] as ModelPricing
+    rawPricing = modelPricesData[normalizedModel]
+  } else {
+    // If mapped model wasn't found, try original model name for backwards compatibility
+    const originalNormalized = model.toLowerCase().trim()
+    if (originalNormalized in modelPricesData) {
+      rawPricing = modelPricesData[originalNormalized]
+    } else {
+      // Try to find a match by comparing the model name without provider prefix
+      for (const knownModel of Object.keys(modelPricesData)) {
+        const knownModelWithoutProvider = knownModel.split('/').pop()?.toLowerCase()
+        if (knownModelWithoutProvider === originalNormalized) {
+          rawPricing = modelPricesData[knownModel]
+          break
+        }
+      }
     }
   }
 
-  // Throw an error if model pricing is not found
-  throw new Error(`Model pricing not found for "${model}". Please update the model prices data.`)
+  if (!rawPricing) {
+    throw new Error(`Model pricing not found for "${model}". Please update the model prices data.`)
+  }
+
+  // Return pricing with tier attributes included
+  return {
+    input_cost_per_token: rawPricing.input_cost_per_token,
+    output_cost_per_token: rawPricing.output_cost_per_token,
+    cache_read_input_token_cost: rawPricing.cache_read_input_token_cost,
+    cache_creation_input_token_cost: rawPricing.cache_creation_input_token_cost,
+    input_cost_per_token_above_200k_tokens: rawPricing.input_cost_per_token_above_200k_tokens,
+    output_cost_per_token_above_200k_tokens: rawPricing.output_cost_per_token_above_200k_tokens,
+    input_cost_per_token_above_128k_tokens: rawPricing.input_cost_per_token_above_128k_tokens,
+    output_cost_per_token_above_128k_tokens: rawPricing.output_cost_per_token_above_128k_tokens
+  }
 }
 
 /**
@@ -192,19 +268,46 @@ export function calculateRequestCost(
   // Get model pricing
   const pricing = getModelPricing(model)
 
-  // Calculate actual costs (with caching applied)
-  const actualInputCost = promptCacheMissTokens * pricing.input_cost_per_token
-  const actualOutputCost = totalOutputTokens * pricing.output_cost_per_token
+  // Calculate total input tokens for tier determination
+  const totalInputTokens = promptCacheMissTokens + promptCacheHitTokens
+
+  // Calculate actual costs using tiered pricing (with caching applied)
+  const actualInputCost = calculateTieredTokenCost(
+    promptCacheMissTokens,
+    pricing.input_cost_per_token,
+    pricing.input_cost_per_token_above_200k_tokens,
+    pricing.input_cost_per_token_above_128k_tokens
+  )
+  
+  // For output cost, tier is determined by total input context size
+  const actualOutputCost = calculateTieredTokenCost(
+    totalOutputTokens,
+    pricing.output_cost_per_token,
+    pricing.output_cost_per_token_above_200k_tokens,
+    pricing.output_cost_per_token_above_128k_tokens,
+    totalInputTokens // Pass input context for tier determination
+  )
   const cacheReadRate = pricing.cache_read_input_token_cost || 0
   const cacheReadCost = promptCacheHitTokens * cacheReadRate
   const cacheWriteRate = pricing.cache_creation_input_token_cost || 0
   const cacheWriteCost = promptCacheWriteTokens * cacheWriteRate
   const actualTotalCost = actualInputCost + actualOutputCost + cacheReadCost + cacheWriteCost
 
-  // Calculate uncached costs (as if no caching was used)
-  const totalInputTokens = promptCacheMissTokens + promptCacheHitTokens
-  const uncachedInputCost = totalInputTokens * pricing.input_cost_per_token
-  const uncachedOutputCost = totalOutputTokens * pricing.output_cost_per_token
+  // Calculate uncached costs using tiered pricing (as if no caching was used)
+  const uncachedInputCost = calculateTieredTokenCost(
+    totalInputTokens,
+    pricing.input_cost_per_token,
+    pricing.input_cost_per_token_above_200k_tokens,
+    pricing.input_cost_per_token_above_128k_tokens
+  )
+  
+  const uncachedOutputCost = calculateTieredTokenCost(
+    totalOutputTokens,
+    pricing.output_cost_per_token,
+    pricing.output_cost_per_token_above_200k_tokens,
+    pricing.output_cost_per_token_above_128k_tokens,
+    totalInputTokens // Pass input context for tier determination
+  )
   const uncachedTotalCost = uncachedInputCost + uncachedOutputCost
 
   // Calculate savings

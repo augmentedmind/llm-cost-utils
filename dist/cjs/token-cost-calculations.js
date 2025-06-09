@@ -9,25 +9,112 @@ const model_prices_js_1 = require("./data/model-prices.js");
 // Cast the imported data to the correct type
 const modelPricesData = model_prices_js_1.modelPricesData;
 /**
+ * Calculate tiered cost for tokens based on existing tier attributes
+ * For output tokens, the tier is typically determined by the input context size
+ * @param tokens Number of tokens to calculate cost for
+ * @param baseCost Base cost per token
+ * @param above200kCost Cost per token above 200k threshold (optional)
+ * @param above128kCost Cost per token above 128k threshold (optional)
+ * @param contextTokens Total input context tokens (for output pricing tier determination)
+ * @returns Total cost for the tokens
+ */
+function calculateTieredTokenCost(tokens, baseCost, above200kCost, above128kCost, contextTokens) {
+    // If no tier pricing is defined, use flat rate
+    if (above200kCost === undefined && above128kCost === undefined) {
+        return tokens * baseCost;
+    }
+    // Use contextTokens for tier determination if provided, otherwise use tokens
+    const tierDeterminantTokens = contextTokens !== undefined ? contextTokens : tokens;
+    // Handle 200k tier (most common for Gemini models)
+    if (above200kCost !== undefined) {
+        if (tierDeterminantTokens <= 200000) {
+            return tokens * baseCost;
+        }
+        else {
+            return tokens * above200kCost;
+        }
+    }
+    // Handle 128k tier (common for Claude and other models)
+    if (above128kCost !== undefined) {
+        if (tierDeterminantTokens <= 128000) {
+            return tokens * baseCost;
+        }
+        else {
+            return tokens * above128kCost;
+        }
+    }
+    // Fallback to base cost
+    return tokens * baseCost;
+}
+/**
+ * Map a model name to its default provider if no provider is specified
+ */
+function mapToDefaultProvider(model) {
+    const normalizedModel = model.toLowerCase().trim();
+    // If model already has a provider prefix, return as-is
+    if (normalizedModel.includes('/')) {
+        return model;
+    }
+    // Map models to their default providers based on naming patterns
+    if (normalizedModel.startsWith('mistral-')) {
+        return `mistral/${model}`;
+    }
+    if (normalizedModel.startsWith('claude-')) {
+        return model; // Claude models in the data are typically without provider prefix
+    }
+    if (normalizedModel.startsWith('gpt-') || normalizedModel.startsWith('o1-') || normalizedModel.startsWith('text-')) {
+        return model; // OpenAI models are typically without provider prefix
+    }
+    if (normalizedModel.startsWith('gemini-')) {
+        return model; // Google models are typically without provider prefix  
+    }
+    // For other models, return as-is and let the existing matching logic handle it
+    return model;
+}
+/**
  * Get the model pricing information for a specific model
  * @throws Error if model pricing is not found
  */
 function getModelPricing(model) {
-    // Normalize model name (remove any version suffixes, etc.)
-    const normalizedModel = model.toLowerCase().trim();
+    // First, try to map to default provider if needed
+    const mappedModel = mapToDefaultProvider(model);
+    const normalizedModel = mappedModel.toLowerCase().trim();
+    let rawPricing;
     // Try to find an exact match
     if (normalizedModel in modelPricesData) {
-        return modelPricesData[normalizedModel];
+        rawPricing = modelPricesData[normalizedModel];
     }
-    // Try to find a match by comparing the model name without provider prefix
-    for (const knownModel of Object.keys(modelPricesData)) {
-        const knownModelWithoutProvider = knownModel.split('/').pop()?.toLowerCase();
-        if (knownModelWithoutProvider === normalizedModel) {
-            return modelPricesData[knownModel];
+    else {
+        // If mapped model wasn't found, try original model name for backwards compatibility
+        const originalNormalized = model.toLowerCase().trim();
+        if (originalNormalized in modelPricesData) {
+            rawPricing = modelPricesData[originalNormalized];
+        }
+        else {
+            // Try to find a match by comparing the model name without provider prefix
+            for (const knownModel of Object.keys(modelPricesData)) {
+                const knownModelWithoutProvider = knownModel.split('/').pop()?.toLowerCase();
+                if (knownModelWithoutProvider === originalNormalized) {
+                    rawPricing = modelPricesData[knownModel];
+                    break;
+                }
+            }
         }
     }
-    // Throw an error if model pricing is not found
-    throw new Error(`Model pricing not found for "${model}". Please update the model prices data.`);
+    if (!rawPricing) {
+        throw new Error(`Model pricing not found for "${model}". Please update the model prices data.`);
+    }
+    // Return pricing with tier attributes included
+    return {
+        input_cost_per_token: rawPricing.input_cost_per_token,
+        output_cost_per_token: rawPricing.output_cost_per_token,
+        cache_read_input_token_cost: rawPricing.cache_read_input_token_cost,
+        cache_creation_input_token_cost: rawPricing.cache_creation_input_token_cost,
+        input_cost_per_token_above_200k_tokens: rawPricing.input_cost_per_token_above_200k_tokens,
+        output_cost_per_token_above_200k_tokens: rawPricing.output_cost_per_token_above_200k_tokens,
+        input_cost_per_token_above_128k_tokens: rawPricing.input_cost_per_token_above_128k_tokens,
+        output_cost_per_token_above_128k_tokens: rawPricing.output_cost_per_token_above_128k_tokens
+    };
 }
 /**
  * Calculate comprehensive cost analysis for a request based on token usage
@@ -41,18 +128,22 @@ function getModelPricing(model) {
 function calculateRequestCost(model, promptCacheMissTokens, totalOutputTokens, promptCacheHitTokens = 0, promptCacheWriteTokens = 0) {
     // Get model pricing
     const pricing = getModelPricing(model);
-    // Calculate actual costs (with caching applied)
-    const actualInputCost = promptCacheMissTokens * pricing.input_cost_per_token;
-    const actualOutputCost = totalOutputTokens * pricing.output_cost_per_token;
+    // Calculate total input tokens for tier determination
+    const totalInputTokens = promptCacheMissTokens + promptCacheHitTokens;
+    // Calculate actual costs using tiered pricing (with caching applied)
+    const actualInputCost = calculateTieredTokenCost(promptCacheMissTokens, pricing.input_cost_per_token, pricing.input_cost_per_token_above_200k_tokens, pricing.input_cost_per_token_above_128k_tokens);
+    // For output cost, tier is determined by total input context size
+    const actualOutputCost = calculateTieredTokenCost(totalOutputTokens, pricing.output_cost_per_token, pricing.output_cost_per_token_above_200k_tokens, pricing.output_cost_per_token_above_128k_tokens, totalInputTokens // Pass input context for tier determination
+    );
     const cacheReadRate = pricing.cache_read_input_token_cost || 0;
     const cacheReadCost = promptCacheHitTokens * cacheReadRate;
     const cacheWriteRate = pricing.cache_creation_input_token_cost || 0;
     const cacheWriteCost = promptCacheWriteTokens * cacheWriteRate;
     const actualTotalCost = actualInputCost + actualOutputCost + cacheReadCost + cacheWriteCost;
-    // Calculate uncached costs (as if no caching was used)
-    const totalInputTokens = promptCacheMissTokens + promptCacheHitTokens;
-    const uncachedInputCost = totalInputTokens * pricing.input_cost_per_token;
-    const uncachedOutputCost = totalOutputTokens * pricing.output_cost_per_token;
+    // Calculate uncached costs using tiered pricing (as if no caching was used)
+    const uncachedInputCost = calculateTieredTokenCost(totalInputTokens, pricing.input_cost_per_token, pricing.input_cost_per_token_above_200k_tokens, pricing.input_cost_per_token_above_128k_tokens);
+    const uncachedOutputCost = calculateTieredTokenCost(totalOutputTokens, pricing.output_cost_per_token, pricing.output_cost_per_token_above_200k_tokens, pricing.output_cost_per_token_above_128k_tokens, totalInputTokens // Pass input context for tier determination
+    );
     const uncachedTotalCost = uncachedInputCost + uncachedOutputCost;
     // Calculate savings
     const inputSavings = uncachedInputCost - actualInputCost;
