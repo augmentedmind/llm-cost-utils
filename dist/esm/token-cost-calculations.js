@@ -137,8 +137,10 @@ export function calculateRequestCost(model, promptCacheMissTokens, totalOutputTo
     const cacheWriteCost = promptCacheWriteTokens * cacheWriteRate;
     const actualTotalCost = actualInputCost + actualOutputCost + cacheReadCost + cacheWriteCost;
     // Calculate uncached costs using tiered pricing (as if no caching was used)
-    const uncachedInputCost = calculateTieredTokenCost(totalInputTokens, pricing.input_cost_per_token, pricing.input_cost_per_token_above_200k_tokens, pricing.input_cost_per_token_above_128k_tokens);
-    const uncachedOutputCost = calculateTieredTokenCost(totalOutputTokens, pricing.output_cost_per_token, pricing.output_cost_per_token_above_200k_tokens, pricing.output_cost_per_token_above_128k_tokens, totalInputTokens // Pass input context for tier determination
+    // Important: if no caching was used, cache write tokens would be regular input tokens
+    const totalInputTokensIfUncached = totalInputTokens + promptCacheWriteTokens;
+    const uncachedInputCost = calculateTieredTokenCost(totalInputTokensIfUncached, pricing.input_cost_per_token, pricing.input_cost_per_token_above_200k_tokens, pricing.input_cost_per_token_above_128k_tokens);
+    const uncachedOutputCost = calculateTieredTokenCost(totalOutputTokens, pricing.output_cost_per_token, pricing.output_cost_per_token_above_200k_tokens, pricing.output_cost_per_token_above_128k_tokens, totalInputTokensIfUncached // Pass the uncached input context for tier determination
     );
     const uncachedTotalCost = uncachedInputCost + uncachedOutputCost;
     // Calculate savings
@@ -146,7 +148,7 @@ export function calculateRequestCost(model, promptCacheMissTokens, totalOutputTo
     const totalSavings = uncachedTotalCost - actualTotalCost;
     const percentSaved = uncachedTotalCost > 0 ? (totalSavings / uncachedTotalCost) * 100 : 0;
     // Calculate cache statistics
-    const hitRate = totalInputTokens > 0 ? promptCacheHitTokens / totalInputTokens : 0;
+    const hitRate = totalInputTokensIfUncached > 0 ? promptCacheHitTokens / totalInputTokensIfUncached : 0;
     return {
         actualCost: {
             inputCost: actualInputCost,
@@ -169,9 +171,9 @@ export function calculateRequestCost(model, promptCacheMissTokens, totalOutputTo
         },
         cacheStats: {
             hitRate,
-            totalInputTokens,
+            totalInputTokens: totalInputTokensIfUncached,
             cachedTokens: promptCacheHitTokens,
-            uncachedTokens: promptCacheMissTokens,
+            uncachedTokens: promptCacheMissTokens + promptCacheWriteTokens,
         },
     };
 }

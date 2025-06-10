@@ -80,27 +80,27 @@ describe('calculateRequestCost', () => {
     expect(analysis.actualCost.totalCost).toBeCloseTo(0.058425, 5)
     
     // Uncached costs (as if no caching was used)
-    // Total input tokens: 1000 + 200 = 1200
-    // 1200 * 0.000015 = 0.018 cost for all input tokens
-    expect(analysis.uncachedCost.inputCost).toBeCloseTo(0.018, 6)
+    // Total input tokens: 1000 + 200 + 300 = 1500 (cache write tokens would be regular input tokens)
+    // 1500 * 0.000015 = 0.0225 cost for all input tokens
+    expect(analysis.uncachedCost.inputCost).toBeCloseTo(0.0225, 6)
     expect(analysis.uncachedCost.outputCost).toBeCloseTo(0.0375, 6)
     expect(analysis.uncachedCost.cacheReadCost).toBe(0)
     expect(analysis.uncachedCost.cacheWriteCost).toBe(0)
-    expect(analysis.uncachedCost.totalCost).toBeCloseTo(0.0555, 6)
+    expect(analysis.uncachedCost.totalCost).toBeCloseTo(0.06, 6)
     
     // Savings analysis
-    const expectedInputSavings = 0.018 - 0.015  // uncached input - actual input
+    const expectedInputSavings = 0.0225 - 0.015  // uncached input - actual input
     expect(analysis.savings.inputSavings).toBeCloseTo(expectedInputSavings, 6)
-    const expectedTotalSavings = 0.0555 - 0.058425  // uncached total - actual total (note: cache write cost is added)
+    const expectedTotalSavings = 0.06 - 0.058425  // uncached total - actual total
     expect(analysis.savings.totalSavings).toBeCloseTo(expectedTotalSavings, 5)
-    const expectedPercentSaved = (expectedTotalSavings / 0.0555) * 100
+    const expectedPercentSaved = (expectedTotalSavings / 0.06) * 100
     expect(analysis.savings.percentSaved).toBeCloseTo(expectedPercentSaved, 3)
     
     // Cache statistics
-    expect(analysis.cacheStats.hitRate).toBeCloseTo(200 / 1200, 6) // 200 cached out of 1200 total
-    expect(analysis.cacheStats.totalInputTokens).toBe(1200)
+    expect(analysis.cacheStats.hitRate).toBeCloseTo(200 / 1500, 6) // 200 cached out of 1500 total
+    expect(analysis.cacheStats.totalInputTokens).toBe(1500)
     expect(analysis.cacheStats.cachedTokens).toBe(200)
-    expect(analysis.cacheStats.uncachedTokens).toBe(1000)
+    expect(analysis.cacheStats.uncachedTokens).toBe(1300) // 1000 cache miss + 300 cache write
   })
 
   it('should handle 100% cache hit scenario', () => {
