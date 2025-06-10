@@ -6,7 +6,6 @@ A utility library for extracting token usage and calculating LLM costs from API 
 
 - 🚀 **Token Usage Extraction**: Extract standardized token usage from various LLM provider response formats
 - 💰 **Cost Analysis**: Calculate comprehensive cost breakdowns including cache savings
-- 🔧 **OpenAI Cache Support**: Properly handles OpenAI's `prompt_tokens_details.cached_tokens` format
 - 📊 **AI SDK Ready**: Seamless integration with Vercel AI SDK responses
 - 🌐 **Multi-Provider**: Works with OpenAI, Anthropic, Google AI, Mistral, and more
 
@@ -239,7 +238,7 @@ To get the latest model pricing, run:
 npm run download-model-prices
 ```
 
-This updates the `model-prices.json` file with current pricing data. For new model support, please [create an issue](https://github.com/augmentedmind/llm-cost-utils/issues) with the model name and pricing information.
+This updates the `model-prices.ts` file with current pricing data from [litellm](https://github.com/BerriAI/litellm).
 
 ## Support
 
