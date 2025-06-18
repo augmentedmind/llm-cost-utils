@@ -6707,6 +6707,90 @@ export const modelPricesData = {
     "source": "https://cloud.google.com/vertex-ai/generative-ai/pricing",
     "supports_web_search": true
   },
+  "gemini/gemini-2.5-pro": {
+    "max_tokens": 65535,
+    "max_input_tokens": 1048576,
+    "max_output_tokens": 65535,
+    "max_images_per_prompt": 3000,
+    "max_videos_per_prompt": 10,
+    "max_video_length": 1,
+    "max_audio_length_hours": 8.4,
+    "max_audio_per_prompt": 1,
+    "max_pdf_size_mb": 30,
+    "input_cost_per_token": 0.00000125,
+    "input_cost_per_token_above_200k_tokens": 0.0000025,
+    "output_cost_per_token": 0.00001,
+    "output_cost_per_token_above_200k_tokens": 0.000015,
+    "litellm_provider": "gemini",
+    "mode": "chat",
+    "rpm": 5,
+    "tpm": 250000,
+    "supports_system_messages": true,
+    "supports_function_calling": true,
+    "supports_vision": true,
+    "supports_audio_input": true,
+    "supports_video_input": true,
+    "supports_pdf_input": true,
+    "supports_response_schema": true,
+    "supports_tool_choice": true,
+    "supported_endpoints": [
+      "/v1/chat/completions",
+      "/v1/completions"
+    ],
+    "supported_modalities": [
+      "text",
+      "image",
+      "audio",
+      "video"
+    ],
+    "supported_output_modalities": [
+      "text"
+    ],
+    "source": "https://cloud.google.com/vertex-ai/generative-ai/pricing",
+    "supports_web_search": true
+  },
+  "gemini-2.5-flash": {
+    "max_tokens": 65535,
+    "max_input_tokens": 1048576,
+    "max_output_tokens": 65535,
+    "max_images_per_prompt": 3000,
+    "max_videos_per_prompt": 10,
+    "max_video_length": 1,
+    "max_audio_length_hours": 8.4,
+    "max_audio_per_prompt": 1,
+    "max_pdf_size_mb": 30,
+    "input_cost_per_audio_token": 0.000001,
+    "input_cost_per_token": 3e-7,
+    "output_cost_per_token": 0.0000025,
+    "output_cost_per_reasoning_token": 0.0000025,
+    "litellm_provider": "vertex_ai-language-models",
+    "mode": "chat",
+    "supports_reasoning": true,
+    "supports_system_messages": true,
+    "supports_function_calling": true,
+    "supports_vision": true,
+    "supports_response_schema": true,
+    "supports_audio_output": false,
+    "supports_tool_choice": true,
+    "supported_endpoints": [
+      "/v1/chat/completions",
+      "/v1/completions",
+      "/v1/batch"
+    ],
+    "supported_modalities": [
+      "text",
+      "image",
+      "audio",
+      "video"
+    ],
+    "supported_output_modalities": [
+      "text"
+    ],
+    "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview",
+    "supports_parallel_function_calling": true,
+    "supports_web_search": true,
+    "supports_url_context": true
+  },
   "gemini/gemini-2.5-flash-preview-tts": {
     "max_tokens": 65535,
     "max_input_tokens": 1048576,
@@ -6910,6 +6994,48 @@ export const modelPricesData = {
     "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview",
     "supports_parallel_function_calling": true,
     "supports_web_search": true
+  },
+  "gemini-2.5-flash-lite-preview-06-17": {
+    "max_tokens": 65535,
+    "max_input_tokens": 1048576,
+    "max_output_tokens": 65535,
+    "max_images_per_prompt": 3000,
+    "max_videos_per_prompt": 10,
+    "max_video_length": 1,
+    "max_audio_length_hours": 8.4,
+    "max_audio_per_prompt": 1,
+    "max_pdf_size_mb": 30,
+    "input_cost_per_audio_token": 0.000001,
+    "input_cost_per_token": 1e-7,
+    "output_cost_per_token": 4e-7,
+    "output_cost_per_reasoning_token": 4e-7,
+    "litellm_provider": "vertex_ai-language-models",
+    "mode": "chat",
+    "supports_reasoning": true,
+    "supports_system_messages": true,
+    "supports_function_calling": true,
+    "supports_vision": true,
+    "supports_response_schema": true,
+    "supports_audio_output": false,
+    "supports_tool_choice": true,
+    "supported_endpoints": [
+      "/v1/chat/completions",
+      "/v1/completions",
+      "/v1/batch"
+    ],
+    "supported_modalities": [
+      "text",
+      "image",
+      "audio",
+      "video"
+    ],
+    "supported_output_modalities": [
+      "text"
+    ],
+    "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview",
+    "supports_parallel_function_calling": true,
+    "supports_web_search": true,
+    "supports_url_context": true
   },
   "gemini-2.0-flash": {
     "max_tokens": 8192,
@@ -9422,6 +9548,21 @@ export const modelPricesData = {
     "mode": "chat",
     "supports_tool_choice": true
   },
+  "openrouter/deepseek/deepseek-r1-0528": {
+    "max_tokens": 8192,
+    "max_input_tokens": 65336,
+    "max_output_tokens": 8192,
+    "input_cost_per_token": 5e-7,
+    "input_cost_per_token_cache_hit": 1.4e-7,
+    "output_cost_per_token": 0.00000215,
+    "litellm_provider": "openrouter",
+    "mode": "chat",
+    "supports_function_calling": true,
+    "supports_assistant_prefill": true,
+    "supports_reasoning": true,
+    "supports_tool_choice": true,
+    "supports_prompt_caching": true
+  },
   "openrouter/deepseek/deepseek-r1": {
     "max_tokens": 8192,
     "max_input_tokens": 65336,
@@ -9467,6 +9608,28 @@ export const modelPricesData = {
     "mode": "chat",
     "supports_tool_choice": true
   },
+  "openrouter/google/gemini-2.5-pro": {
+    "max_tokens": 8192,
+    "max_input_tokens": 1048576,
+    "max_output_tokens": 8192,
+    "max_images_per_prompt": 3000,
+    "max_videos_per_prompt": 10,
+    "max_video_length": 1,
+    "max_audio_length_hours": 8.4,
+    "max_audio_per_prompt": 1,
+    "max_pdf_size_mb": 30,
+    "input_cost_per_audio_token": 7e-7,
+    "input_cost_per_token": 0.00000125,
+    "output_cost_per_token": 0.00001,
+    "litellm_provider": "openrouter",
+    "mode": "chat",
+    "supports_system_messages": true,
+    "supports_function_calling": true,
+    "supports_vision": true,
+    "supports_response_schema": true,
+    "supports_audio_output": true,
+    "supports_tool_choice": true
+  },
   "openrouter/google/gemini-pro-1.5": {
     "max_tokens": 8192,
     "max_input_tokens": 1000000,
@@ -9493,6 +9656,28 @@ export const modelPricesData = {
     "input_cost_per_audio_token": 7e-7,
     "input_cost_per_token": 1e-7,
     "output_cost_per_token": 4e-7,
+    "litellm_provider": "openrouter",
+    "mode": "chat",
+    "supports_system_messages": true,
+    "supports_function_calling": true,
+    "supports_vision": true,
+    "supports_response_schema": true,
+    "supports_audio_output": true,
+    "supports_tool_choice": true
+  },
+  "openrouter/google/gemini-2.5-flash": {
+    "max_tokens": 8192,
+    "max_input_tokens": 1048576,
+    "max_output_tokens": 8192,
+    "max_images_per_prompt": 3000,
+    "max_videos_per_prompt": 10,
+    "max_video_length": 1,
+    "max_audio_length_hours": 8.4,
+    "max_audio_per_prompt": 1,
+    "max_pdf_size_mb": 30,
+    "input_cost_per_audio_token": 7e-7,
+    "input_cost_per_token": 3e-7,
+    "output_cost_per_token": 0.0000025,
     "litellm_provider": "openrouter",
     "mode": "chat",
     "supports_system_messages": true,
@@ -9642,6 +9827,23 @@ export const modelPricesData = {
     "mode": "chat",
     "supports_function_calling": true,
     "supports_vision": true,
+    "supports_tool_choice": true
+  },
+  "openrouter/anthropic/claude-sonnet-4": {
+    "supports_computer_use": true,
+    "max_tokens": 8192,
+    "max_input_tokens": 200000,
+    "max_output_tokens": 8192,
+    "input_cost_per_token": 0.000003,
+    "output_cost_per_token": 0.000015,
+    "input_cost_per_image": 0.0048,
+    "litellm_provider": "openrouter",
+    "mode": "chat",
+    "supports_function_calling": true,
+    "supports_vision": true,
+    "supports_reasoning": true,
+    "tool_use_system_prompt_tokens": 159,
+    "supports_assistant_prefill": true,
     "supports_tool_choice": true
   },
   "openrouter/mistralai/mistral-large": {
