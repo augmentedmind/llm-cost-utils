@@ -2159,13 +2159,73 @@ export const modelPricesData = {
     "supports_tool_choice": true,
     "supports_native_streaming": true
   },
+  "azure/o3-pro": {
+    "max_tokens": 100000,
+    "max_input_tokens": 200000,
+    "max_output_tokens": 100000,
+    "input_cost_per_token": 0.00002,
+    "output_cost_per_token": 0.00008,
+    "input_cost_per_token_batches": 0.00001,
+    "output_cost_per_token_batches": 0.00004,
+    "litellm_provider": "azure",
+    "mode": "chat",
+    "supported_endpoints": [
+      "/v1/chat/completions",
+      "/v1/batch",
+      "/v1/responses"
+    ],
+    "supported_modalities": [
+      "text",
+      "image"
+    ],
+    "supported_output_modalities": [
+      "text"
+    ],
+    "supports_function_calling": true,
+    "supports_parallel_function_calling": false,
+    "supports_vision": true,
+    "supports_prompt_caching": false,
+    "supports_response_schema": true,
+    "supports_reasoning": true,
+    "supports_tool_choice": true
+  },
+  "azure/o3-pro-2025-06-10": {
+    "max_tokens": 100000,
+    "max_input_tokens": 200000,
+    "max_output_tokens": 100000,
+    "input_cost_per_token": 0.00002,
+    "output_cost_per_token": 0.00008,
+    "input_cost_per_token_batches": 0.00001,
+    "output_cost_per_token_batches": 0.00004,
+    "litellm_provider": "azure",
+    "mode": "chat",
+    "supported_endpoints": [
+      "/v1/chat/completions",
+      "/v1/batch",
+      "/v1/responses"
+    ],
+    "supported_modalities": [
+      "text",
+      "image"
+    ],
+    "supported_output_modalities": [
+      "text"
+    ],
+    "supports_function_calling": true,
+    "supports_parallel_function_calling": false,
+    "supports_vision": true,
+    "supports_prompt_caching": false,
+    "supports_response_schema": true,
+    "supports_reasoning": true,
+    "supports_tool_choice": true
+  },
   "azure/o3": {
     "max_tokens": 100000,
     "max_input_tokens": 200000,
     "max_output_tokens": 100000,
-    "input_cost_per_token": 0.00001,
-    "output_cost_per_token": 0.00004,
-    "cache_read_input_token_cost": 0.0000025,
+    "input_cost_per_token": 0.000002,
+    "output_cost_per_token": 0.000008,
+    "cache_read_input_token_cost": 5e-7,
     "litellm_provider": "azure",
     "mode": "chat",
     "supported_endpoints": [
@@ -2682,7 +2742,7 @@ export const modelPricesData = {
     "supports_prompt_caching": true,
     "supports_tool_choice": true
   },
-  "azure/codex-mini-latest": {
+  "azure/codex-mini": {
     "max_tokens": 100000,
     "max_input_tokens": 200000,
     "max_output_tokens": 100000,
@@ -3989,7 +4049,8 @@ export const modelPricesData = {
     "litellm_provider": "mistral",
     "mode": "chat",
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/mistral-small": {
     "max_tokens": 8191,
@@ -4001,7 +4062,8 @@ export const modelPricesData = {
     "supports_function_calling": true,
     "mode": "chat",
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/mistral-small-latest": {
     "max_tokens": 8191,
@@ -4013,7 +4075,8 @@ export const modelPricesData = {
     "supports_function_calling": true,
     "mode": "chat",
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/mistral-medium": {
     "max_tokens": 8191,
@@ -4024,7 +4087,8 @@ export const modelPricesData = {
     "litellm_provider": "mistral",
     "mode": "chat",
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/mistral-medium-latest": {
     "max_tokens": 8191,
@@ -4036,7 +4100,8 @@ export const modelPricesData = {
     "mode": "chat",
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/mistral-medium-2505": {
     "max_tokens": 8191,
@@ -4048,7 +4113,8 @@ export const modelPricesData = {
     "mode": "chat",
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/mistral-medium-2312": {
     "max_tokens": 8191,
@@ -4059,7 +4125,8 @@ export const modelPricesData = {
     "litellm_provider": "mistral",
     "mode": "chat",
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/mistral-large-latest": {
     "max_tokens": 128000,
@@ -4071,7 +4138,8 @@ export const modelPricesData = {
     "mode": "chat",
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/mistral-large-2411": {
     "max_tokens": 128000,
@@ -4083,7 +4151,8 @@ export const modelPricesData = {
     "mode": "chat",
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/mistral-large-2402": {
     "max_tokens": 8191,
@@ -4095,7 +4164,8 @@ export const modelPricesData = {
     "mode": "chat",
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/mistral-large-2407": {
     "max_tokens": 128000,
@@ -4107,7 +4177,8 @@ export const modelPricesData = {
     "mode": "chat",
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/pixtral-large-latest": {
     "max_tokens": 128000,
@@ -4120,7 +4191,8 @@ export const modelPricesData = {
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
     "supports_vision": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/pixtral-large-2411": {
     "max_tokens": 128000,
@@ -4133,7 +4205,8 @@ export const modelPricesData = {
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
     "supports_vision": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/pixtral-12b-2409": {
     "max_tokens": 128000,
@@ -4146,7 +4219,8 @@ export const modelPricesData = {
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
     "supports_vision": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/open-mistral-7b": {
     "max_tokens": 8191,
@@ -4157,7 +4231,8 @@ export const modelPricesData = {
     "litellm_provider": "mistral",
     "mode": "chat",
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/open-mixtral-8x7b": {
     "max_tokens": 8191,
@@ -4169,7 +4244,8 @@ export const modelPricesData = {
     "mode": "chat",
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/open-mixtral-8x22b": {
     "max_tokens": 8191,
@@ -4181,7 +4257,8 @@ export const modelPricesData = {
     "mode": "chat",
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/codestral-latest": {
     "max_tokens": 8191,
@@ -4192,7 +4269,8 @@ export const modelPricesData = {
     "litellm_provider": "mistral",
     "mode": "chat",
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/codestral-2405": {
     "max_tokens": 8191,
@@ -4203,7 +4281,8 @@ export const modelPricesData = {
     "litellm_provider": "mistral",
     "mode": "chat",
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/open-mistral-nemo": {
     "max_tokens": 128000,
@@ -4215,7 +4294,8 @@ export const modelPricesData = {
     "mode": "chat",
     "source": "https://mistral.ai/technology/",
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/open-mistral-nemo-2407": {
     "max_tokens": 128000,
@@ -4227,7 +4307,8 @@ export const modelPricesData = {
     "mode": "chat",
     "source": "https://mistral.ai/technology/",
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/open-codestral-mamba": {
     "max_tokens": 256000,
@@ -4264,7 +4345,8 @@ export const modelPricesData = {
     "source": "https://mistral.ai/news/devstral",
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
-    "supports_tool_choice": true
+    "supports_tool_choice": true,
+    "supports_response_schema": true
   },
   "mistral/magistral-medium-latest": {
     "max_tokens": 40000,
@@ -4278,7 +4360,8 @@ export const modelPricesData = {
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
     "supports_tool_choice": true,
-    "supports_reasoning": true
+    "supports_reasoning": true,
+    "supports_response_schema": true
   },
   "mistral/magistral-medium-2506": {
     "max_tokens": 40000,
@@ -4292,7 +4375,8 @@ export const modelPricesData = {
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
     "supports_tool_choice": true,
-    "supports_reasoning": true
+    "supports_reasoning": true,
+    "supports_response_schema": true
   },
   "mistral/magistral-small-latest": {
     "max_tokens": 40000,
@@ -4306,7 +4390,8 @@ export const modelPricesData = {
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
     "supports_tool_choice": true,
-    "supports_reasoning": true
+    "supports_reasoning": true,
+    "supports_response_schema": true
   },
   "mistral/magistral-small-2506": {
     "max_tokens": 40000,
@@ -4320,7 +4405,8 @@ export const modelPricesData = {
     "supports_function_calling": true,
     "supports_assistant_prefill": true,
     "supports_tool_choice": true,
-    "supports_reasoning": true
+    "supports_reasoning": true,
+    "supports_response_schema": true
   },
   "mistral/mistral-embed": {
     "max_tokens": 8192,
@@ -5800,9 +5886,9 @@ export const modelPricesData = {
     "max_output_tokens": 4028,
     "litellm_provider": "meta_llama",
     "mode": "chat",
-    "supports_function_calling": false,
+    "supports_function_calling": true,
     "source": "https://llama.developer.meta.com/docs/models",
-    "supports_tool_choice": false,
+    "supports_tool_choice": true,
     "supported_modalities": [
       "text",
       "image"
@@ -5817,9 +5903,9 @@ export const modelPricesData = {
     "max_output_tokens": 4028,
     "litellm_provider": "meta_llama",
     "mode": "chat",
-    "supports_function_calling": false,
+    "supports_function_calling": true,
     "source": "https://llama.developer.meta.com/docs/models",
-    "supports_tool_choice": false,
+    "supports_tool_choice": true,
     "supported_modalities": [
       "text",
       "image"
@@ -5834,9 +5920,9 @@ export const modelPricesData = {
     "max_output_tokens": 4028,
     "litellm_provider": "meta_llama",
     "mode": "chat",
-    "supports_function_calling": false,
+    "supports_function_calling": true,
     "source": "https://llama.developer.meta.com/docs/models",
-    "supports_tool_choice": false,
+    "supports_tool_choice": true,
     "supported_modalities": [
       "text"
     ],
@@ -5850,9 +5936,9 @@ export const modelPricesData = {
     "max_output_tokens": 4028,
     "litellm_provider": "meta_llama",
     "mode": "chat",
-    "supports_function_calling": false,
+    "supports_function_calling": true,
     "source": "https://llama.developer.meta.com/docs/models",
-    "supports_tool_choice": false,
+    "supports_tool_choice": true,
     "supported_modalities": [
       "text"
     ],
@@ -6665,6 +6751,47 @@ export const modelPricesData = {
     "supports_parallel_function_calling": true,
     "supports_web_search": true
   },
+  "gemini-2.5-pro": {
+    "max_tokens": 65535,
+    "max_input_tokens": 1048576,
+    "max_output_tokens": 65535,
+    "max_images_per_prompt": 3000,
+    "max_videos_per_prompt": 10,
+    "max_video_length": 1,
+    "max_audio_length_hours": 8.4,
+    "max_audio_per_prompt": 1,
+    "max_pdf_size_mb": 30,
+    "input_cost_per_token": 0.00000125,
+    "input_cost_per_token_above_200k_tokens": 0.0000025,
+    "output_cost_per_token": 0.00001,
+    "output_cost_per_token_above_200k_tokens": 0.000015,
+    "litellm_provider": "vertex_ai-language-models",
+    "mode": "chat",
+    "supports_system_messages": true,
+    "supports_function_calling": true,
+    "supports_vision": true,
+    "supports_audio_input": true,
+    "supports_video_input": true,
+    "supports_pdf_input": true,
+    "supports_response_schema": true,
+    "supports_tool_choice": true,
+    "supports_reasoning": true,
+    "supported_endpoints": [
+      "/v1/chat/completions",
+      "/v1/completions"
+    ],
+    "supported_modalities": [
+      "text",
+      "image",
+      "audio",
+      "video"
+    ],
+    "supported_output_modalities": [
+      "text"
+    ],
+    "source": "https://cloud.google.com/vertex-ai/generative-ai/pricing",
+    "supports_web_search": true
+  },
   "gemini/gemini-2.5-pro-exp-03-25": {
     "max_tokens": 65535,
     "max_input_tokens": 1048576,
@@ -6723,8 +6850,8 @@ export const modelPricesData = {
     "output_cost_per_token_above_200k_tokens": 0.000015,
     "litellm_provider": "gemini",
     "mode": "chat",
-    "rpm": 5,
-    "tpm": 250000,
+    "rpm": 2000,
+    "tpm": 800000,
     "supports_system_messages": true,
     "supports_function_calling": true,
     "supports_vision": true,
@@ -6733,6 +6860,7 @@ export const modelPricesData = {
     "supports_pdf_input": true,
     "supports_response_schema": true,
     "supports_tool_choice": true,
+    "supports_reasoning": true,
     "supported_endpoints": [
       "/v1/chat/completions",
       "/v1/completions"
@@ -6748,6 +6876,51 @@ export const modelPricesData = {
     ],
     "source": "https://cloud.google.com/vertex-ai/generative-ai/pricing",
     "supports_web_search": true
+  },
+  "gemini/gemini-2.5-flash": {
+    "max_tokens": 65535,
+    "max_input_tokens": 1048576,
+    "max_output_tokens": 65535,
+    "max_images_per_prompt": 3000,
+    "max_videos_per_prompt": 10,
+    "max_video_length": 1,
+    "max_audio_length_hours": 8.4,
+    "max_audio_per_prompt": 1,
+    "max_pdf_size_mb": 30,
+    "input_cost_per_audio_token": 0.000001,
+    "input_cost_per_token": 3e-7,
+    "output_cost_per_token": 0.0000025,
+    "output_cost_per_reasoning_token": 0.0000025,
+    "litellm_provider": "gemini",
+    "mode": "chat",
+    "supports_reasoning": true,
+    "supports_system_messages": true,
+    "supports_function_calling": true,
+    "supports_vision": true,
+    "supports_response_schema": true,
+    "supports_audio_output": false,
+    "supports_tool_choice": true,
+    "supported_endpoints": [
+      "/v1/chat/completions",
+      "/v1/completions",
+      "/v1/batch"
+    ],
+    "supported_modalities": [
+      "text",
+      "image",
+      "audio",
+      "video"
+    ],
+    "supported_output_modalities": [
+      "text"
+    ],
+    "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview",
+    "supports_parallel_function_calling": true,
+    "supports_web_search": true,
+    "supports_url_context": true,
+    "tpm": 8000000,
+    "rpm": 100000,
+    "supports_pdf_input": true
   },
   "gemini-2.5-flash": {
     "max_tokens": 65535,
@@ -6789,7 +6962,8 @@ export const modelPricesData = {
     "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview",
     "supports_parallel_function_calling": true,
     "supports_web_search": true,
-    "supports_url_context": true
+    "supports_url_context": true,
+    "supports_pdf_input": true
   },
   "gemini/gemini-2.5-flash-preview-tts": {
     "max_tokens": 65535,
@@ -6840,9 +7014,9 @@ export const modelPricesData = {
     "max_audio_per_prompt": 1,
     "max_pdf_size_mb": 30,
     "input_cost_per_audio_token": 0.000001,
-    "input_cost_per_token": 1.5e-7,
-    "output_cost_per_token": 6e-7,
-    "output_cost_per_reasoning_token": 0.0000035,
+    "input_cost_per_token": 3e-7,
+    "output_cost_per_token": 0.0000025,
+    "output_cost_per_reasoning_token": 0.0000025,
     "litellm_provider": "gemini",
     "mode": "chat",
     "rpm": 10,
@@ -6869,7 +7043,8 @@ export const modelPricesData = {
     ],
     "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview",
     "supports_web_search": true,
-    "supports_url_context": true
+    "supports_url_context": true,
+    "supports_pdf_input": true
   },
   "gemini/gemini-2.5-flash-preview-04-17": {
     "max_tokens": 65535,
@@ -6910,7 +7085,53 @@ export const modelPricesData = {
       "text"
     ],
     "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview",
-    "supports_web_search": true
+    "supports_web_search": true,
+    "supports_pdf_input": true
+  },
+  "gemini/gemini-2.5-flash-lite-preview-06-17": {
+    "max_tokens": 65535,
+    "max_input_tokens": 1048576,
+    "max_output_tokens": 65535,
+    "max_images_per_prompt": 3000,
+    "max_videos_per_prompt": 10,
+    "max_video_length": 1,
+    "max_audio_length_hours": 8.4,
+    "max_audio_per_prompt": 1,
+    "max_pdf_size_mb": 30,
+    "input_cost_per_audio_token": 5e-7,
+    "input_cost_per_token": 1e-7,
+    "output_cost_per_token": 4e-7,
+    "output_cost_per_reasoning_token": 4e-7,
+    "litellm_provider": "gemini",
+    "mode": "chat",
+    "rpm": 15,
+    "tpm": 250000,
+    "supports_reasoning": true,
+    "supports_system_messages": true,
+    "supports_function_calling": true,
+    "supports_vision": true,
+    "supports_response_schema": true,
+    "supports_audio_output": false,
+    "supports_tool_choice": true,
+    "supported_endpoints": [
+      "/v1/chat/completions",
+      "/v1/completions",
+      "/v1/batch"
+    ],
+    "supported_modalities": [
+      "text",
+      "image",
+      "audio",
+      "video"
+    ],
+    "supported_output_modalities": [
+      "text"
+    ],
+    "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-lite",
+    "supports_parallel_function_calling": true,
+    "supports_web_search": true,
+    "supports_url_context": true,
+    "supports_pdf_input": true
   },
   "gemini-2.5-flash-preview-05-20": {
     "max_tokens": 65535,
@@ -6923,9 +7144,9 @@ export const modelPricesData = {
     "max_audio_per_prompt": 1,
     "max_pdf_size_mb": 30,
     "input_cost_per_audio_token": 0.000001,
-    "input_cost_per_token": 1.5e-7,
-    "output_cost_per_token": 6e-7,
-    "output_cost_per_reasoning_token": 0.0000035,
+    "input_cost_per_token": 3e-7,
+    "output_cost_per_token": 0.0000025,
+    "output_cost_per_reasoning_token": 0.0000025,
     "litellm_provider": "vertex_ai-language-models",
     "mode": "chat",
     "supports_reasoning": true,
@@ -6952,7 +7173,8 @@ export const modelPricesData = {
     "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview",
     "supports_parallel_function_calling": true,
     "supports_web_search": true,
-    "supports_url_context": true
+    "supports_url_context": true,
+    "supports_pdf_input": true
   },
   "gemini-2.5-flash-preview-04-17": {
     "max_tokens": 65535,
@@ -6993,7 +7215,8 @@ export const modelPricesData = {
     ],
     "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview",
     "supports_parallel_function_calling": true,
-    "supports_web_search": true
+    "supports_web_search": true,
+    "supports_pdf_input": true
   },
   "gemini-2.5-flash-lite-preview-06-17": {
     "max_tokens": 65535,
@@ -7005,7 +7228,7 @@ export const modelPricesData = {
     "max_audio_length_hours": 8.4,
     "max_audio_per_prompt": 1,
     "max_pdf_size_mb": 30,
-    "input_cost_per_audio_token": 0.000001,
+    "input_cost_per_audio_token": 5e-7,
     "input_cost_per_token": 1e-7,
     "output_cost_per_token": 4e-7,
     "output_cost_per_reasoning_token": 4e-7,
@@ -7035,7 +7258,8 @@ export const modelPricesData = {
     "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview",
     "supports_parallel_function_calling": true,
     "supports_web_search": true,
-    "supports_url_context": true
+    "supports_url_context": true,
+    "supports_pdf_input": true
   },
   "gemini-2.0-flash": {
     "max_tokens": 8192,
@@ -7181,7 +7405,8 @@ export const modelPricesData = {
     ],
     "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview",
     "supports_parallel_function_calling": true,
-    "supports_web_search": true
+    "supports_web_search": true,
+    "supports_pdf_input": true
   },
   "gemini-2.5-pro-preview-05-06": {
     "max_tokens": 65535,
@@ -7226,7 +7451,8 @@ export const modelPricesData = {
     ],
     "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview",
     "supports_parallel_function_calling": true,
-    "supports_web_search": true
+    "supports_web_search": true,
+    "supports_pdf_input": true
   },
   "gemini-2.5-pro-preview-03-25": {
     "max_tokens": 65535,
@@ -7268,7 +7494,8 @@ export const modelPricesData = {
     ],
     "source": "https://ai.google.dev/gemini-api/docs/models#gemini-2.5-flash-preview",
     "supports_parallel_function_calling": true,
-    "supports_web_search": true
+    "supports_web_search": true,
+    "supports_pdf_input": true
   },
   "gemini-2.0-flash-preview-image-generation": {
     "max_tokens": 8192,
@@ -7593,7 +7820,8 @@ export const modelPricesData = {
     ],
     "source": "https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-pro-preview",
     "supports_web_search": true,
-    "supports_url_context": true
+    "supports_url_context": true,
+    "supports_pdf_input": true
   },
   "gemini/gemini-2.5-pro-preview-05-06": {
     "max_tokens": 65535,
@@ -7631,7 +7859,8 @@ export const modelPricesData = {
     ],
     "source": "https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-pro-preview",
     "supports_web_search": true,
-    "supports_url_context": true
+    "supports_url_context": true,
+    "supports_pdf_input": true
   },
   "gemini/gemini-2.5-pro-preview-03-25": {
     "max_tokens": 65535,
@@ -7668,7 +7897,8 @@ export const modelPricesData = {
       "text"
     ],
     "source": "https://ai.google.dev/gemini-api/docs/pricing#gemini-2.5-pro-preview",
-    "supports_web_search": true
+    "supports_web_search": true,
+    "supports_pdf_input": true
   },
   "gemini/gemini-2.0-flash-exp": {
     "max_tokens": 8192,
@@ -9854,7 +10084,15 @@ export const modelPricesData = {
     "mode": "chat",
     "supports_tool_choice": true
   },
-  "mistralai/mistral-small-3.1-24b-instruct": {
+  "openrouter/mistralai/mistral-small-3.1-24b-instruct": {
+    "max_tokens": 32000,
+    "input_cost_per_token": 1e-7,
+    "output_cost_per_token": 3e-7,
+    "litellm_provider": "openrouter",
+    "mode": "chat",
+    "supports_tool_choice": true
+  },
+  "openrouter/mistralai/mistral-small-3.2-24b-instruct": {
     "max_tokens": 32000,
     "input_cost_per_token": 1e-7,
     "output_cost_per_token": 3e-7,
@@ -10774,6 +11012,46 @@ export const modelPricesData = {
     "supports_response_schema": true,
     "source": "https://aws.amazon.com/bedrock/pricing/"
   },
+  "apac.amazon.nova-micro-v1:0": {
+    "max_tokens": 10000,
+    "max_input_tokens": 300000,
+    "max_output_tokens": 10000,
+    "input_cost_per_token": 3.7e-8,
+    "output_cost_per_token": 1.48e-7,
+    "litellm_provider": "bedrock_converse",
+    "mode": "chat",
+    "supports_function_calling": true,
+    "supports_prompt_caching": true,
+    "supports_response_schema": true
+  },
+  "apac.amazon.nova-lite-v1:0": {
+    "max_tokens": 10000,
+    "max_input_tokens": 128000,
+    "max_output_tokens": 10000,
+    "input_cost_per_token": 6.3e-8,
+    "output_cost_per_token": 2.52e-7,
+    "litellm_provider": "bedrock_converse",
+    "mode": "chat",
+    "supports_function_calling": true,
+    "supports_vision": true,
+    "supports_pdf_input": true,
+    "supports_prompt_caching": true,
+    "supports_response_schema": true
+  },
+  "apac.amazon.nova-pro-v1:0": {
+    "max_tokens": 10000,
+    "max_input_tokens": 300000,
+    "max_output_tokens": 10000,
+    "input_cost_per_token": 8.4e-7,
+    "output_cost_per_token": 0.00000336,
+    "litellm_provider": "bedrock_converse",
+    "mode": "chat",
+    "supports_function_calling": true,
+    "supports_vision": true,
+    "supports_pdf_input": true,
+    "supports_prompt_caching": true,
+    "supports_response_schema": true
+  },
   "us.amazon.nova-premier-v1:0": {
     "max_tokens": 10000,
     "max_input_tokens": 1000000,
@@ -11234,6 +11512,93 @@ export const modelPricesData = {
     "supports_computer_use": true
   },
   "eu.anthropic.claude-sonnet-4-20250514-v1:0": {
+    "max_tokens": 64000,
+    "max_input_tokens": 200000,
+    "max_output_tokens": 64000,
+    "input_cost_per_token": 0.000003,
+    "output_cost_per_token": 0.000015,
+    "search_context_cost_per_query": {
+      "search_context_size_low": 0.01,
+      "search_context_size_medium": 0.01,
+      "search_context_size_high": 0.01
+    },
+    "cache_creation_input_token_cost": 0.00000375,
+    "cache_read_input_token_cost": 3e-7,
+    "litellm_provider": "bedrock_converse",
+    "mode": "chat",
+    "supports_function_calling": true,
+    "supports_vision": true,
+    "tool_use_system_prompt_tokens": 159,
+    "supports_assistant_prefill": true,
+    "supports_pdf_input": true,
+    "supports_prompt_caching": true,
+    "supports_response_schema": true,
+    "supports_tool_choice": true,
+    "supports_reasoning": true,
+    "supports_computer_use": true
+  },
+  "apac.anthropic.claude-3-haiku-20240307-v1:0": {
+    "max_tokens": 4096,
+    "max_input_tokens": 200000,
+    "max_output_tokens": 4096,
+    "input_cost_per_token": 2.5e-7,
+    "output_cost_per_token": 0.00000125,
+    "litellm_provider": "bedrock",
+    "mode": "chat",
+    "supports_function_calling": true,
+    "supports_response_schema": true,
+    "supports_vision": true,
+    "supports_pdf_input": true,
+    "supports_tool_choice": true
+  },
+  "apac.anthropic.claude-3-sonnet-20240229-v1:0": {
+    "max_tokens": 4096,
+    "max_input_tokens": 200000,
+    "max_output_tokens": 4096,
+    "input_cost_per_token": 0.000003,
+    "output_cost_per_token": 0.000015,
+    "litellm_provider": "bedrock",
+    "mode": "chat",
+    "supports_function_calling": true,
+    "supports_response_schema": true,
+    "supports_vision": true,
+    "supports_pdf_input": true,
+    "supports_tool_choice": true
+  },
+  "apac.anthropic.claude-3-5-sonnet-20240620-v1:0": {
+    "max_tokens": 4096,
+    "max_input_tokens": 200000,
+    "max_output_tokens": 4096,
+    "input_cost_per_token": 0.000003,
+    "output_cost_per_token": 0.000015,
+    "litellm_provider": "bedrock",
+    "mode": "chat",
+    "supports_function_calling": true,
+    "supports_response_schema": true,
+    "supports_vision": true,
+    "supports_pdf_input": true,
+    "supports_tool_choice": true
+  },
+  "apac.anthropic.claude-3-5-sonnet-20241022-v2:0": {
+    "max_tokens": 8192,
+    "max_input_tokens": 200000,
+    "max_output_tokens": 8192,
+    "input_cost_per_token": 0.000003,
+    "output_cost_per_token": 0.000015,
+    "cache_creation_input_token_cost": 0.00000375,
+    "cache_read_input_token_cost": 3e-7,
+    "litellm_provider": "bedrock",
+    "mode": "chat",
+    "supports_function_calling": true,
+    "supports_vision": true,
+    "supports_assistant_prefill": true,
+    "supports_computer_use": true,
+    "supports_pdf_input": true,
+    "supports_prompt_caching": true,
+    "supports_response_schema": true,
+    "supports_tool_choice": true
+  },
+  "apac.anthropic.claude-sonnet-4-20250514-v1:0": {
     "max_tokens": 64000,
     "max_input_tokens": 200000,
     "max_output_tokens": 64000,
@@ -13379,13 +13744,14 @@ export const modelPricesData = {
     "input_cost_per_token": 0.000002,
     "output_cost_per_token": 0.000008,
     "output_cost_per_reasoning_token": 0.000003,
-    "litellm_provider": "perplexity",
-    "mode": "chat",
+    "citation_cost_per_token": 0.000002,
     "search_context_cost_per_query": {
       "search_context_size_low": 0.005,
       "search_context_size_medium": 0.005,
       "search_context_size_high": 0.005
     },
+    "litellm_provider": "perplexity",
+    "mode": "chat",
     "supports_reasoning": true,
     "supports_web_search": true
   },
