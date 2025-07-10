@@ -317,6 +317,24 @@ export const modelPricesData = {
     "supports_response_schema": true,
     "supports_system_messages": true
   },
+  "watsonx/mistralai/mistral-large": {
+    "max_tokens": 131072,
+    "max_input_tokens": 131072,
+    "max_output_tokens": 16384,
+    "input_cost_per_token": 0.000003,
+    "output_cost_per_token": 0.00001,
+    "litellm_provider": "watsonx",
+    "mode": "chat",
+    "supports_function_calling": true,
+    "supports_tool_choice": true,
+    "supports_parallel_function_calling": false,
+    "supports_vision": false,
+    "supports_audio_input": false,
+    "supports_audio_output": false,
+    "supports_prompt_caching": true,
+    "supports_response_schema": true,
+    "supports_system_messages": true
+  },
   "gpt-4o-search-preview-2025-03-11": {
     "max_tokens": 16384,
     "max_input_tokens": 128000,
@@ -4070,6 +4088,17 @@ export const modelPricesData = {
     "supports_vision": false,
     "source": "https://azure.microsoft.com/en-us/pricing/details/phi-3/",
     "supports_tool_choice": true
+  },
+  "azure_ai/cohere-rerank-v3.5": {
+    "max_tokens": 4096,
+    "max_input_tokens": 4096,
+    "max_output_tokens": 4096,
+    "max_query_tokens": 2048,
+    "input_cost_per_token": 0,
+    "input_cost_per_query": 0.002,
+    "output_cost_per_token": 0,
+    "litellm_provider": "azure_ai",
+    "mode": "rerank"
   },
   "azure_ai/cohere-rerank-v3-multilingual": {
     "max_tokens": 4096,
@@ -10936,8 +10965,7 @@ export const modelPricesData = {
     "output_cost_per_token": 0.000024,
     "litellm_provider": "bedrock",
     "mode": "chat",
-    "supports_function_calling": true,
-    "supports_tool_choice": true
+    "supports_function_calling": true
   },
   "mistral.mistral-large-2407-v1:0": {
     "max_tokens": 8191,
@@ -10958,8 +10986,7 @@ export const modelPricesData = {
     "output_cost_per_token": 0.000003,
     "litellm_provider": "bedrock",
     "mode": "chat",
-    "supports_function_calling": true,
-    "supports_tool_choice": true
+    "supports_function_calling": true
   },
   "bedrock/us-west-2/mistral.mixtral-8x7b-instruct-v0:1": {
     "max_tokens": 8191,
@@ -11029,8 +11056,7 @@ export const modelPricesData = {
     "output_cost_per_token": 0.000024,
     "litellm_provider": "bedrock",
     "mode": "chat",
-    "supports_function_calling": true,
-    "supports_tool_choice": true
+    "supports_function_calling": true
   },
   "bedrock/us-west-2/mistral.mistral-large-2402-v1:0": {
     "max_tokens": 8191,
@@ -11040,8 +11066,7 @@ export const modelPricesData = {
     "output_cost_per_token": 0.000024,
     "litellm_provider": "bedrock",
     "mode": "chat",
-    "supports_function_calling": true,
-    "supports_tool_choice": true
+    "supports_function_calling": true
   },
   "bedrock/eu-west-3/mistral.mistral-large-2402-v1:0": {
     "max_tokens": 8191,
@@ -11051,8 +11076,7 @@ export const modelPricesData = {
     "output_cost_per_token": 0.0000312,
     "litellm_provider": "bedrock",
     "mode": "chat",
-    "supports_function_calling": true,
-    "supports_tool_choice": true
+    "supports_function_calling": true
   },
   "amazon.nova-micro-v1:0": {
     "max_tokens": 10000,
