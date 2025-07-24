@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Data files
+src/data/
+
 # Build outputs
 dist/
 
