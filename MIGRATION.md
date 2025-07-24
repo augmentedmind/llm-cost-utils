@@ -9,33 +9,47 @@ This guide will help you migrate from llm-cost-utils 0.1.0 to 0.2.0.
 The `calculateRequestCost` function now returns comprehensive cost analytics instead of a simple cost breakdown.
 
 #### **Before (0.1.0):**
+
 ```typescript
 interface RequestCost {
-  inputCost: number
-  outputCost: number
-  cacheReadCost: number
-  cacheWriteCost: number
-  totalCost: number
+  inputCost: number;
+  outputCost: number;
+  cacheReadCost: number;
+  cacheWriteCost: number;
+  totalCost: number;
 }
 
-const cost = calculateRequestCost(model, cacheMissTokens, outputTokens, cacheHitTokens, cacheWriteTokens)
-console.log(cost.totalCost) // Access total cost
+const cost = calculateRequestCost(
+  model,
+  cacheMissTokens,
+  outputTokens,
+  cacheHitTokens,
+  cacheWriteTokens,
+);
+console.log(cost.totalCost); // Access total cost
 ```
 
 #### **After (0.2.0):**
+
 ```typescript
 interface RequestCostAnalysis {
-  actualCost: CostBreakdown
-  uncachedCost: CostBreakdown
-  savings: SavingsAnalysis
-  cacheStats: CacheStatistics
+  actualCost: CostBreakdown;
+  uncachedCost: CostBreakdown;
+  savings: SavingsAnalysis;
+  cacheStats: CacheStatistics;
 }
 
-const analysis = calculateRequestCost(model, cacheMissTokens, outputTokens, cacheHitTokens, cacheWriteTokens)
-console.log(analysis.actualCost.totalCost) // Access total cost
-console.log(analysis.uncachedCost.totalCost) // See what it would cost without cache
-console.log(analysis.savings.percentSaved) // See percentage saved
-console.log(analysis.cacheStats.hitRate) // See cache hit rate
+const analysis = calculateRequestCost(
+  model,
+  cacheMissTokens,
+  outputTokens,
+  cacheHitTokens,
+  cacheWriteTokens,
+);
+console.log(analysis.actualCost.totalCost); // Access total cost
+console.log(analysis.uncachedCost.totalCost); // See what it would cost without cache
+console.log(analysis.savings.percentSaved); // See percentage saved
+console.log(analysis.cacheStats.hitRate); // See cache hit rate
 ```
 
 ## Migration Steps
@@ -61,20 +75,32 @@ const input = analysis.actualCost.inputCost
 Now you can access powerful new analytics:
 
 ```typescript
-const analysis = calculateRequestCost(model, cacheMissTokens, outputTokens, cacheHitTokens, cacheWriteTokens)
+const analysis = calculateRequestCost(
+  model,
+  cacheMissTokens,
+  outputTokens,
+  cacheHitTokens,
+  cacheWriteTokens,
+);
 
 // 💡 What the request actually cost (with caching)
-console.log(`Actual cost: $${analysis.actualCost.totalCost.toFixed(6)}`)
+console.log(`Actual cost: $${analysis.actualCost.totalCost.toFixed(6)}`);
 
 // 💡 What it would have cost without caching
-console.log(`Uncached cost: $${analysis.uncachedCost.totalCost.toFixed(6)}`)
+console.log(`Uncached cost: $${analysis.uncachedCost.totalCost.toFixed(6)}`);
 
 // 💡 How much you saved
-console.log(`Saved: $${analysis.savings.totalSavings.toFixed(6)} (${analysis.savings.percentSaved.toFixed(1)}%)`)
+console.log(
+  `Saved: $${analysis.savings.totalSavings.toFixed(6)} (${analysis.savings.percentSaved.toFixed(1)}%)`,
+);
 
 // 💡 Cache performance metrics
-console.log(`Cache hit rate: ${(analysis.cacheStats.hitRate * 100).toFixed(1)}%`)
-console.log(`Cached tokens: ${analysis.cacheStats.cachedTokens}/${analysis.cacheStats.totalInputTokens}`)
+console.log(
+  `Cache hit rate: ${(analysis.cacheStats.hitRate * 100).toFixed(1)}%`,
+);
+console.log(
+  `Cached tokens: ${analysis.cacheStats.cachedTokens}/${analysis.cacheStats.totalInputTokens}`,
+);
 ```
 
 ### 3. Update Metadata Storage
@@ -108,38 +134,45 @@ const metadata = {
 ## New Interfaces
 
 ### `RequestCostAnalysis`
+
 Main return type containing all cost analytics.
 
 ### `CostBreakdown`
+
 Detailed cost breakdown (replaces old `RequestCost`):
+
 ```typescript
 interface CostBreakdown {
-  inputCost: number
-  outputCost: number
-  cacheReadCost: number
-  cacheWriteCost: number
-  totalCost: number
+  inputCost: number;
+  outputCost: number;
+  cacheReadCost: number;
+  cacheWriteCost: number;
+  totalCost: number;
 }
 ```
 
 ### `SavingsAnalysis`
+
 Cache savings analytics:
+
 ```typescript
 interface SavingsAnalysis {
-  inputSavings: number      // How much saved on input costs
-  totalSavings: number      // Total amount saved
-  percentSaved: number      // Percentage saved (0-100)
+  inputSavings: number; // How much saved on input costs
+  totalSavings: number; // Total amount saved
+  percentSaved: number; // Percentage saved (0-100)
 }
 ```
 
 ### `CacheStatistics`
+
 Cache performance metrics:
+
 ```typescript
 interface CacheStatistics {
-  hitRate: number           // Cache hit rate (0-1)
-  totalInputTokens: number  // Total input tokens
-  cachedTokens: number      // Tokens served from cache
-  uncachedTokens: number    // Tokens not from cache
+  hitRate: number; // Cache hit rate (0-1)
+  totalInputTokens: number; // Total input tokens
+  cachedTokens: number; // Tokens served from cache
+  uncachedTokens: number; // Tokens not from cache
 }
 ```
 
@@ -153,4 +186,4 @@ interface CacheStatistics {
 
 ## Need Help?
 
-If you have questions about migrating, please check the updated README.md or open an issue in the repository. 
+If you have questions about migrating, please check the updated README.md or open an issue in the repository.

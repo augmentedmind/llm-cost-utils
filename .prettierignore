@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Data files
+src/data/
+
+# Build outputs
+dist/
+
+# Generated files
+*.d.ts
+
+# Logs
+*.log
+
+# Environment files
+.env*
+
+# Package lock
+package-lock.json
+
+# Git
+.git/ 

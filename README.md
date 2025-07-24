@@ -20,7 +20,7 @@ npm install github:augmentedmind/llm-cost-utils
 ### Token Usage Extraction
 
 ```typescript
-import { extractTokenUsageFromResponseBody } from 'llm-cost-utils';
+import { extractTokenUsageFromResponseBody } from "llm-cost-utils";
 
 // OpenAI response with cached tokens
 const openaiResponse = {
@@ -30,9 +30,9 @@ const openaiResponse = {
     completion_tokens: 268,
     total_tokens: 2836,
     prompt_tokens_details: {
-      cached_tokens: 1280
-    }
-  }
+      cached_tokens: 1280,
+    },
+  },
 };
 
 const tokenUsage = extractTokenUsageFromResponseBody(openaiResponse);
@@ -53,15 +53,15 @@ console.log(tokenUsage);
 ### Cost Calculation
 
 ```typescript
-import { calculateRequestCost } from 'llm-cost-utils';
+import { calculateRequestCost } from "llm-cost-utils";
 
 // Calculate comprehensive cost analysis
 const costAnalysis = calculateRequestCost(
-  'gpt-4o',                    // model name
-  1288,                        // promptCacheMissTokens
-  268,                         // totalOutputTokens
-  1280,                        // promptCacheHitTokens
-  0                            // promptCacheWriteTokens
+  "gpt-4o", // model name
+  1288, // promptCacheMissTokens
+  268, // totalOutputTokens
+  1280, // promptCacheHitTokens
+  0, // promptCacheWriteTokens
 );
 
 console.log(costAnalysis);
@@ -98,21 +98,24 @@ console.log(costAnalysis);
 ## Complete Example
 
 ```typescript
-import { extractTokenUsageFromResponseBody, calculateRequestCost } from 'llm-cost-utils';
+import {
+  extractTokenUsageFromResponseBody,
+  calculateRequestCost,
+} from "llm-cost-utils";
 
 async function analyzeResponse(responseBody: any) {
   // Extract token usage
   const tokenUsage = extractTokenUsageFromResponseBody(responseBody);
-  
+
   // Calculate cost analysis
   const costAnalysis = calculateRequestCost(
-    tokenUsage.model || 'gpt-4o',
+    tokenUsage.model || "gpt-4o",
     tokenUsage.promptCacheMissTokens,
     tokenUsage.totalOutputTokens,
     tokenUsage.promptCacheHitTokens,
-    tokenUsage.promptCacheWriteTokens
+    tokenUsage.promptCacheWriteTokens,
   );
-  
+
   return {
     tokenUsage,
     costAnalysis,
@@ -120,8 +123,8 @@ async function analyzeResponse(responseBody: any) {
       model: tokenUsage.model,
       totalCost: costAnalysis.actualCost.totalCost,
       savings: costAnalysis.savings.totalSavings,
-      cacheHitRate: costAnalysis.cacheStats.hitRate
-    }
+      cacheHitRate: costAnalysis.cacheStats.hitRate,
+    },
   };
 }
 ```
@@ -129,8 +132,11 @@ async function analyzeResponse(responseBody: any) {
 ## AI SDK Integration
 
 ```typescript
-import { streamObject } from 'ai';
-import { extractTokenUsageFromResponseBody, calculateRequestCost } from 'llm-cost-utils';
+import { streamObject } from "ai";
+import {
+  extractTokenUsageFromResponseBody,
+  calculateRequestCost,
+} from "llm-cost-utils";
 
 let finalTokenUsage = null;
 let finalCostAnalysis = null;
@@ -144,18 +150,18 @@ const { partialObjectStream } = await streamObject({
     const aiSdkUsageData = {
       model: "gpt-4o",
       usage,
-      providerMetadata
+      providerMetadata,
     };
-    
+
     finalTokenUsage = extractTokenUsageFromResponseBody(aiSdkUsageData);
     finalCostAnalysis = calculateRequestCost(
       finalTokenUsage.model || "gpt-4o",
       finalTokenUsage.promptCacheMissTokens,
       finalTokenUsage.totalOutputTokens,
       finalTokenUsage.promptCacheHitTokens,
-      finalTokenUsage.promptCacheWriteTokens
+      finalTokenUsage.promptCacheWriteTokens,
     );
-  }
+  },
 });
 
 // Process the stream...
@@ -164,20 +170,20 @@ for await (const partialObject of partialObjectStream) {
 }
 
 // Usage data is now available
-console.log('Token Usage:', finalTokenUsage);
-console.log('Cost Analysis:', finalCostAnalysis);
+console.log("Token Usage:", finalTokenUsage);
+console.log("Cost Analysis:", finalCostAnalysis);
 ```
 
 ## Supported Providers
 
-| Provider | Token Usage | Cached Tokens | Reasoning Tokens | Cost Calculation |
-|----------|-------------|---------------|------------------|------------------|
-| OpenAI | ✅ | ✅ | ✅ | ✅ |
-| Azure OpenAI | ✅ | ✅ | ✅ | ✅ |
-| Anthropic | ✅ | ✅ | ✅ | ✅ |
-| Google AI | ✅ | ✅ | ✅ | ✅ |
-| Mistral | ✅ | ❌ | ❌ | ✅ |
-| **AI SDK** | ✅ | ✅ | ✅ | ✅ |
+| Provider     | Token Usage | Cached Tokens | Reasoning Tokens | Cost Calculation |
+| ------------ | ----------- | ------------- | ---------------- | ---------------- |
+| OpenAI       | ✅          | ✅            | ✅               | ✅               |
+| Azure OpenAI | ✅          | ✅            | ✅               | ✅               |
+| Anthropic    | ✅          | ✅            | ✅               | ✅               |
+| Google AI    | ✅          | ✅            | ✅               | ✅               |
+| Mistral      | ✅          | ❌            | ❌               | ✅               |
+| **AI SDK**   | ✅          | ✅            | ✅               | ✅               |
 
 > **Note**: AI SDK (Vercel AI SDK) is supported as a response format that wraps any of the above providers
 
@@ -187,14 +193,14 @@ All extraction functions return a standardized `TokenUsage` object:
 
 ```typescript
 interface TokenUsage {
-  promptCacheMissTokens: number    // New input tokens (not from cache)
-  promptCacheHitTokens: number     // Input tokens served from cache
-  reasoningTokens: number          // Output tokens for reasoning (o1 models)
-  completionTokens: number         // Output tokens for completion
-  totalOutputTokens: number        // Total output tokens (reasoning + completion)
-  totalInputTokens: number         // Total input tokens (cache miss + cache hit)
-  promptCacheWriteTokens: number   // Tokens written to cache
-  model?: string                   // Model name (when available)
+  promptCacheMissTokens: number; // New input tokens (not from cache)
+  promptCacheHitTokens: number; // Input tokens served from cache
+  reasoningTokens: number; // Output tokens for reasoning (o1 models)
+  completionTokens: number; // Output tokens for completion
+  totalOutputTokens: number; // Total output tokens (reasoning + completion)
+  totalInputTokens: number; // Total input tokens (cache miss + cache hit)
+  promptCacheWriteTokens: number; // Tokens written to cache
+  model?: string; // Model name (when available)
 }
 ```
 
@@ -205,28 +211,28 @@ The `calculateRequestCost` function returns detailed cost breakdown:
 ```typescript
 interface RequestCostAnalysis {
   actualCost: {
-    inputCost: number        // Cost for non-cached input tokens
-    outputCost: number       // Cost for output tokens
-    cacheReadCost: number    // Cost for reading cached tokens (discounted)
-    cacheWriteCost: number   // Cost for writing tokens to cache
-    totalCost: number        // Total actual cost
-  }
+    inputCost: number; // Cost for non-cached input tokens
+    outputCost: number; // Cost for output tokens
+    cacheReadCost: number; // Cost for reading cached tokens (discounted)
+    cacheWriteCost: number; // Cost for writing tokens to cache
+    totalCost: number; // Total actual cost
+  };
   uncachedCost: {
-    inputCost: number        // What input would cost without caching
-    outputCost: number       // Output cost (same as actual)
-    totalCost: number        // Total cost if no caching was used
-  }
+    inputCost: number; // What input would cost without caching
+    outputCost: number; // Output cost (same as actual)
+    totalCost: number; // Total cost if no caching was used
+  };
   savings: {
-    inputSavings: number     // Amount saved on input costs
-    totalSavings: number     // Total amount saved by caching
-    percentSaved: number     // Percentage of cost saved
-  }
+    inputSavings: number; // Amount saved on input costs
+    totalSavings: number; // Total amount saved by caching
+    percentSaved: number; // Percentage of cost saved
+  };
   cacheStats: {
-    hitRate: number          // Cache hit rate (0-1)
-    totalInputTokens: number // Total input tokens processed
-    cachedTokens: number     // Tokens served from cache
-    uncachedTokens: number   // Tokens not in cache
-  }
+    hitRate: number; // Cache hit rate (0-1)
+    totalInputTokens: number; // Total input tokens processed
+    cachedTokens: number; // Tokens served from cache
+    uncachedTokens: number; // Tokens not in cache
+  };
 }
 ```
 
@@ -245,6 +251,7 @@ This updates the `model-prices.ts` file with current pricing data from [litellm]
 For issues, questions, or feature requests, please [create an issue](https://github.com/augmentedmind/llm-cost-utils/issues) or start a [discussion](https://github.com/augmentedmind/llm-cost-utils/discussions) in the repository.
 
 When reporting issues, please include:
+
 - A minimal reproducible example
 - The exact input and expected vs actual output
 - The model and provider you're using
@@ -255,6 +262,8 @@ When reporting issues, please include:
 npm install
 npm run build
 npm test
+npm run format        # Format code with Prettier
+npm run format:check  # Check code formatting without making changes
 ```
 
 ## License
