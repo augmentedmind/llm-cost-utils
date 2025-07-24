@@ -15,7 +15,7 @@ exports.extractTokenUsageFromResponse = extractTokenUsageFromResponse;
 class TokenUsageExtractionError extends Error {
     constructor(message) {
         super(message);
-        this.name = 'TokenUsageExtractionError';
+        this.name = "TokenUsageExtractionError";
     }
 }
 exports.TokenUsageExtractionError = TokenUsageExtractionError;
@@ -26,7 +26,7 @@ exports.TokenUsageExtractionError = TokenUsageExtractionError;
 function extractTokenUsageFromResponseBody(responseBody) {
     // Throw error for null or undefined input
     if (responseBody === null || responseBody === undefined) {
-        throw new TokenUsageExtractionError('Token usage extraction failed: responseBody is null or undefined');
+        throw new TokenUsageExtractionError("Token usage extraction failed: responseBody is null or undefined");
     }
     // Default values
     let promptCacheMissTokens = 0;
@@ -41,26 +41,42 @@ function extractTokenUsageFromResponseBody(responseBody) {
     if (responseBody.model) {
         model = responseBody.model;
     }
-    else if (responseBody.id && typeof responseBody.id === 'string' && responseBody.id.startsWith('cmpl-')) {
+    else if (responseBody.id &&
+        typeof responseBody.id === "string" &&
+        responseBody.id.startsWith("cmpl-")) {
         // OpenAI completion ID, try to extract model from object
         model = responseBody.model || undefined;
     }
     // Handle message_start event from streaming responses
     if (responseBody?.message?.usage) {
         // Extract input tokens and cache info from message_start
-        promptCacheMissTokens = responseBody.message.usage.input_tokens || responseBody.message.usage.prompt_tokens || 0;
+        promptCacheMissTokens =
+            responseBody.message.usage.input_tokens ||
+                responseBody.message.usage.prompt_tokens ||
+                0;
         // Extract cache hit tokens
-        promptCacheHitTokens = responseBody.message.usage.cache_read_input_tokens || responseBody.message.usage.cache_read_tokens || 0;
+        promptCacheHitTokens =
+            responseBody.message.usage.cache_read_input_tokens ||
+                responseBody.message.usage.cache_read_tokens ||
+                0;
         // Extract cache write tokens
-        promptCacheWriteTokens = responseBody.message.usage.cache_creation_input_tokens || responseBody.message.usage.cache_write_tokens || 0;
+        promptCacheWriteTokens =
+            responseBody.message.usage.cache_creation_input_tokens ||
+                responseBody.message.usage.cache_write_tokens ||
+                0;
         // Extract completion tokens
-        completionTokens = responseBody.message.usage.completion_tokens || responseBody.message.usage.output_tokens || 0;
+        completionTokens =
+            responseBody.message.usage.completion_tokens ||
+                responseBody.message.usage.output_tokens ||
+                0;
         // Try to get model from message
         if (!model && responseBody.message.model) {
             model = responseBody.message.model;
         }
     }
-    else if (responseBody.usage && responseBody.usage.promptTokens !== undefined && responseBody.usage.completionTokens !== undefined) {
+    else if (responseBody.usage &&
+        responseBody.usage.promptTokens !== undefined &&
+        responseBody.usage.completionTokens !== undefined) {
         // Format for AI SDK (Vercel AI SDK)
         // Format: { model: "gpt-4o", usage: { promptTokens: 91, completionTokens: 38, totalTokens: 129 }, providerMetadata: {...} }
         // Extract basic token counts from nested usage
@@ -71,14 +87,26 @@ function extractTokenUsageFromResponseBody(responseBody) {
         let aiSdkReasoningTokens = 0;
         if (responseBody.providerMetadata?.openai) {
             // Azure OpenAI / OpenAI provider metadata
-            cachedTokens = responseBody.providerMetadata.openai.cachedPromptTokens || 0;
-            aiSdkReasoningTokens = responseBody.providerMetadata.openai.reasoningTokens || 0;
+            cachedTokens =
+                responseBody.providerMetadata.openai.cachedPromptTokens || 0;
+            aiSdkReasoningTokens =
+                responseBody.providerMetadata.openai.reasoningTokens || 0;
         }
         else if (responseBody.providerMetadata?.anthropic) {
             // Anthropic provider metadata
-            cachedTokens = responseBody.providerMetadata.anthropic.cacheReadInputTokens || 0;
+            cachedTokens =
+                responseBody.providerMetadata.anthropic.cacheReadInputTokens || 0;
             // Extract cache write tokens for Anthropic
-            promptCacheWriteTokens = responseBody.providerMetadata.anthropic.cacheCreationInputTokens || 0;
+            promptCacheWriteTokens =
+                responseBody.providerMetadata.anthropic.cacheCreationInputTokens || 0;
+        }
+        else if (responseBody.providerMetadata?.bedrock) {
+            // AWS Bedrock provider metadata
+            cachedTokens =
+                responseBody.providerMetadata.bedrock.usage?.cacheReadInputTokens || 0;
+            // Extract cache write tokens for AWS Bedrock
+            promptCacheWriteTokens =
+                responseBody.providerMetadata.bedrock.usage?.cacheWriteInputTokens || 0;
         }
         // Calculate cache miss tokens (prompt tokens that weren't cached)
         promptCacheMissTokens = Math.max(0, aiSdkPromptTokens - cachedTokens);
@@ -93,48 +121,66 @@ function extractTokenUsageFromResponseBody(responseBody) {
     }
     else if (responseBody?.usage) {
         // Handle Mistral format
-        if (responseBody.model?.startsWith('mistral-')) {
+        if (responseBody.model?.startsWith("mistral-")) {
             promptCacheMissTokens = responseBody.usage.promptTokens || 0;
             completionTokens = responseBody.usage.completionTokens || 0;
             model = responseBody.model;
         }
         else {
             // Extract input tokens and cache info
-            promptCacheMissTokens = responseBody.usage.input_tokens || responseBody.usage.prompt_tokens || 0;
+            promptCacheMissTokens =
+                responseBody.usage.input_tokens ||
+                    responseBody.usage.prompt_tokens ||
+                    0;
             // Extract reasoning tokens if available
-            if (responseBody.usage.completion_tokens_details?.reasoning_tokens !== undefined) {
-                reasoningTokens = responseBody.usage.completion_tokens_details.reasoning_tokens || 0;
+            if (responseBody.usage.completion_tokens_details?.reasoning_tokens !==
+                undefined) {
+                reasoningTokens =
+                    responseBody.usage.completion_tokens_details.reasoning_tokens || 0;
             }
-            else if (responseBody.usage.completion_tokens_details?.reasoningTokens !== undefined) {
-                reasoningTokens = responseBody.usage.completion_tokens_details.reasoningTokens || 0;
+            else if (responseBody.usage.completion_tokens_details?.reasoningTokens !==
+                undefined) {
+                reasoningTokens =
+                    responseBody.usage.completion_tokens_details.reasoningTokens || 0;
             }
             else {
                 reasoningTokens = responseBody.usage.reasoningTokens || 0;
             }
             // Extract completion tokens
-            completionTokens = responseBody.usage.completion_tokens || responseBody.usage.output_tokens || 0;
+            completionTokens =
+                responseBody.usage.completion_tokens ||
+                    responseBody.usage.output_tokens ||
+                    0;
             // If we have reasoning tokens, subtract them from completion tokens
             if (reasoningTokens > 0 && completionTokens > 0) {
                 completionTokens = completionTokens - reasoningTokens;
             }
             // Extract cache hit tokens - check OpenAI format first
             if (responseBody.usage.prompt_tokens_details?.cached_tokens !== undefined) {
-                promptCacheHitTokens = responseBody.usage.prompt_tokens_details.cached_tokens || 0;
+                promptCacheHitTokens =
+                    responseBody.usage.prompt_tokens_details.cached_tokens || 0;
                 // Adjust promptCacheMissTokens to exclude cached tokens for OpenAI format
                 const totalPromptTokens = responseBody.usage.prompt_tokens || 0;
                 promptCacheMissTokens = Math.max(0, totalPromptTokens - promptCacheHitTokens);
             }
             else {
                 // Fallback to other formats
-                promptCacheHitTokens = responseBody.usage.cache_read_input_tokens || responseBody.usage.cache_read_tokens || 0;
+                promptCacheHitTokens =
+                    responseBody.usage.cache_read_input_tokens ||
+                        responseBody.usage.cache_read_tokens ||
+                        0;
             }
             // Extract cache write tokens
-            promptCacheWriteTokens = responseBody.usage.cache_creation_input_tokens || responseBody.usage.cache_write_tokens || 0;
+            promptCacheWriteTokens =
+                responseBody.usage.cache_creation_input_tokens ||
+                    responseBody.usage.cache_write_tokens ||
+                    0;
         }
     }
     else if (responseBody.usageMetadata) {
         // Handle different usageMetadata formats
-        if (responseBody.usageMetadata.promptTokenCount !== undefined && responseBody.usageMetadata.candidatesTokenCount !== undefined) {
+        if (responseBody.usageMetadata.promptTokenCount !== undefined &&
+            responseBody.usageMetadata.candidatesTokenCount !== undefined) {
             // Gemini 2.0 Flash format
             promptCacheMissTokens = responseBody.usageMetadata.promptTokenCount || 0;
             completionTokens = responseBody.usageMetadata.candidatesTokenCount || 0;
@@ -150,10 +196,12 @@ function extractTokenUsageFromResponseBody(responseBody) {
             completionTokens = responseBody.usageMetadata.output_tokens || 0;
             // Check for cache info if available
             if (responseBody.usageMetadata.cache_read_input_tokens) {
-                promptCacheHitTokens = responseBody.usageMetadata.cache_read_input_tokens;
+                promptCacheHitTokens =
+                    responseBody.usageMetadata.cache_read_input_tokens;
             }
             if (responseBody.usageMetadata.cache_creation_input_tokens) {
-                promptCacheWriteTokens = responseBody.usageMetadata.cache_creation_input_tokens;
+                promptCacheWriteTokens =
+                    responseBody.usageMetadata.cache_creation_input_tokens;
             }
             // Try to extract model from Anthropic response
             if (responseBody.model) {
@@ -195,7 +243,8 @@ function extractTokenUsageFromResponseBody(responseBody) {
     }
     // Calculate total values
     totalOutputTokens = reasoningTokens + completionTokens;
-    totalInputTokens = promptCacheMissTokens + promptCacheHitTokens + promptCacheWriteTokens;
+    totalInputTokens =
+        promptCacheMissTokens + promptCacheHitTokens + promptCacheWriteTokens;
     // Check if we have no token usage information
     if (totalInputTokens === 0 && totalOutputTokens === 0) {
         throw new TokenUsageExtractionError(`Token usage extraction failed: no token usage information in response`);
@@ -216,7 +265,7 @@ function extractTokenUsageFromResponseBody(responseBody) {
  */
 function isSSEResponseBody(responseBody) {
     // If it's already an object, it's not SSE
-    if (typeof responseBody !== 'string') {
+    if (typeof responseBody !== "string") {
         return false;
     }
     // Check for SSE format indicators
@@ -224,12 +273,11 @@ function isSSEResponseBody(responseBody) {
     // 2. Contains newlines between events or has the 'event:' prefix
     // 3. SSE typically ends with [DONE] for completions
     // 4. Check for data: {"id":"chatcmpl- pattern for OpenAI responses
-    return (responseBody.includes('data: ') &&
-        (responseBody.includes('\n\n') ||
-            responseBody.includes('event:'))) ||
-        responseBody.includes('data: [DONE]') ||
-        (responseBody.includes('data: {"id":"chatcmpl-') ||
-            responseBody.includes('data: {"model":'));
+    return ((responseBody.includes("data: ") &&
+        (responseBody.includes("\n\n") || responseBody.includes("event:"))) ||
+        responseBody.includes("data: [DONE]") ||
+        responseBody.includes('data: {"id":"chatcmpl-') ||
+        responseBody.includes('data: {"model":'));
 }
 /**
  * Extract token usage from a streaming response by parsing SSE events
@@ -237,19 +285,24 @@ function isSSEResponseBody(responseBody) {
 function extractTokenUsageFromStreamingResponseBody(responseText) {
     // Throw error for null or undefined response
     if (!responseText) {
-        throw new TokenUsageExtractionError('Token usage extraction failed: response text is null or undefined');
+        throw new TokenUsageExtractionError("Token usage extraction failed: response text is null or undefined");
     }
     // Check for error events in the stream
-    if (responseText.includes('event: error') || responseText.includes('"type":"error"')) {
-        throw new TokenUsageExtractionError('Token usage extraction failed: error event detected in stream');
+    if (responseText.includes("event: error") ||
+        responseText.includes('"type":"error"')) {
+        throw new TokenUsageExtractionError("Token usage extraction failed: error event detected in stream");
     }
     // Parse SSE events - handle both proper newlines (\n\n) and improper formatting (just data: prefixes)
-    let events = responseText.split('\n\n').filter((event) => event.trim() !== '');
+    let events = responseText
+        .split("\n\n")
+        .filter((event) => event.trim() !== "");
     // If we don't have multiple events with proper newlines, try to split by data: instead
-    if (events.length <= 1 && responseText.includes('data: ')) {
+    if (events.length <= 1 && responseText.includes("data: ")) {
         // This is a workaround for SSE streams without proper newlines
-        const dataLines = responseText.split('data: ');
-        events = dataLines.filter(line => line.trim() !== '').map(line => `data: ${line}`);
+        const dataLines = responseText.split("data: ");
+        events = dataLines
+            .filter((line) => line.trim() !== "")
+            .map((line) => `data: ${line}`);
     }
     // Initialize token usage with default values
     let tokenUsage = {
@@ -265,11 +318,11 @@ function extractTokenUsageFromStreamingResponseBody(responseText) {
     // Look through all events for usage information and model
     for (const event of events) {
         try {
-            const lines = event.split('\n');
-            const dataLine = lines.find((line) => line.startsWith('data: '));
+            const lines = event.split("\n");
+            const dataLine = lines.find((line) => line.startsWith("data: "));
             if (dataLine) {
-                const jsonStr = dataLine.replace('data: ', '');
-                if (jsonStr === '[DONE]')
+                const jsonStr = dataLine.replace("data: ", "");
+                if (jsonStr === "[DONE]")
                     continue;
                 try {
                     const data = JSON.parse(jsonStr);
@@ -301,13 +354,13 @@ function extractTokenUsageFromStreamingResponseBody(responseText) {
             }
         }
         catch (error) {
-            console.error('Error parsing SSE event:', error);
+            console.error("Error parsing SSE event:", error);
         }
     }
     // Check if we found any token usage information
     if (tokenUsage.totalInputTokens === 0 && tokenUsage.totalOutputTokens === 0) {
         // We have a model but no token usage - this is likely a streaming response without usage info
-        throw new TokenUsageExtractionError('Token usage extraction failed: no token usage information found in streaming response');
+        throw new TokenUsageExtractionError("Token usage extraction failed: no token usage information found in streaming response");
     }
     return tokenUsage;
 }
@@ -321,7 +374,7 @@ function extractTokenUsageFromStreamingResponseBody(responseText) {
 function extractTokenUsageFromResponse(responseBody) {
     // Throw error for null or undefined input
     if (responseBody === null || responseBody === undefined) {
-        throw new TokenUsageExtractionError('Token usage extraction failed: responseBody is null or undefined');
+        throw new TokenUsageExtractionError("Token usage extraction failed: responseBody is null or undefined");
     }
     try {
         // Check if it's a streaming response (SSE)
@@ -330,11 +383,13 @@ function extractTokenUsageFromResponse(responseBody) {
         }
         else {
             // Handle JSON response
-            const jsonBody = typeof responseBody === 'string' ? JSON.parse(responseBody) : responseBody;
+            const jsonBody = typeof responseBody === "string"
+                ? JSON.parse(responseBody)
+                : responseBody;
             return extractTokenUsageFromResponseBody(jsonBody);
         }
     }
     catch (error) {
-        throw new TokenUsageExtractionError(`Token usage extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        throw new TokenUsageExtractionError(`Token usage extraction failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
 }
