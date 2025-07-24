@@ -262,6 +262,8 @@ When reporting issues, please include:
 npm install
 npm run build
 npm test
+npm run format        # Format code with Prettier
+npm run format:check  # Check code formatting without making changes
 ```
 
 ## License

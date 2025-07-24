@@ -34,7 +34,9 @@
     "build:types": "tsc --project tsconfig.types.json",
     "dev": "tsc --watch --preserveWatchOutput",
     "test": "vitest run",
-    "download-model-prices": "node scripts/download-model-prices.js"
+    "download-model-prices": "node scripts/download-model-prices.js",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
   },
   "keywords": [
     "llm",
@@ -43,6 +45,7 @@
     "ai"
   ],
   "devDependencies": {
+    "prettier": "^3.6.2",
     "typescript": "^5.3.3",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^2.1.9"
