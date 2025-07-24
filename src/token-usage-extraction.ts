@@ -117,6 +117,13 @@ export function extractTokenUsageFromResponseBody(
       // Extract cache write tokens for Anthropic
       promptCacheWriteTokens =
         responseBody.providerMetadata.anthropic.cacheCreationInputTokens || 0;
+    } else if (responseBody.providerMetadata?.bedrock) {
+      // AWS Bedrock provider metadata
+      cachedTokens =
+        responseBody.providerMetadata.bedrock.usage?.cacheReadInputTokens || 0;
+      // Extract cache write tokens for AWS Bedrock
+      promptCacheWriteTokens =
+        responseBody.providerMetadata.bedrock.usage?.cacheWriteInputTokens || 0;
     }
 
     // Calculate cache miss tokens (prompt tokens that weren't cached)

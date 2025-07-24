@@ -100,6 +100,93 @@ describe("Token Usage Extraction", () => {
       expect(result.totalOutputTokens).toBe(50);
     });
 
+    it("should handle AWS Bedrock format with cache read", () => {
+      const responseBody = {
+        model: "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
+        usage: {
+          promptTokens: 3687,
+          completionTokens: 1047,
+          totalTokens: 4734,
+        },
+        providerMetadata: {
+          bedrock: {
+            usage: {
+              cacheReadInputTokens: 2069,
+              cacheWriteInputTokens: 0,
+            },
+          },
+        },
+      };
+
+      const result = extractTokenUsageFromResponseBody(responseBody);
+
+      expect(result.promptCacheHitTokens).toBe(2069);
+      expect(result.promptCacheWriteTokens).toBe(0);
+      expect(result.promptCacheMissTokens).toBe(1618); // 3687 - 2069
+      expect(result.completionTokens).toBe(1047);
+      expect(result.totalInputTokens).toBe(3687);
+      expect(result.totalOutputTokens).toBe(1047);
+      expect(result.model).toBe("eu.anthropic.claude-3-7-sonnet-20250219-v1:0");
+    });
+
+    it("should handle AWS Bedrock format with cache write", () => {
+      const responseBody = {
+        model: "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
+        usage: {
+          promptTokens: 3687,
+          completionTokens: 1047,
+          totalTokens: 4734,
+        },
+        providerMetadata: {
+          bedrock: {
+            usage: {
+              cacheReadInputTokens: 0,
+              cacheWriteInputTokens: 2069,
+            },
+          },
+        },
+      };
+
+      const result = extractTokenUsageFromResponseBody(responseBody);
+
+      expect(result.promptCacheHitTokens).toBe(0);
+      expect(result.promptCacheWriteTokens).toBe(2069);
+      expect(result.promptCacheMissTokens).toBe(3687);
+      expect(result.completionTokens).toBe(1047);
+      expect(result.totalInputTokens).toBe(5756); // 3687 + 2069
+      expect(result.totalOutputTokens).toBe(1047);
+      expect(result.model).toBe("eu.anthropic.claude-3-7-sonnet-20250219-v1:0");
+    });
+
+    it("should handle AWS Bedrock format with no cache tokens", () => {
+      const responseBody = {
+        model: "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
+        usage: {
+          promptTokens: 3687,
+          completionTokens: 1047,
+          totalTokens: 4734,
+        },
+        providerMetadata: {
+          bedrock: {
+            usage: {
+              cacheReadInputTokens: 0,
+              cacheWriteInputTokens: 0,
+            },
+          },
+        },
+      };
+
+      const result = extractTokenUsageFromResponseBody(responseBody);
+
+      expect(result.promptCacheHitTokens).toBe(0);
+      expect(result.promptCacheWriteTokens).toBe(0);
+      expect(result.promptCacheMissTokens).toBe(3687);
+      expect(result.completionTokens).toBe(1047);
+      expect(result.totalInputTokens).toBe(3687);
+      expect(result.totalOutputTokens).toBe(1047);
+      expect(result.model).toBe("eu.anthropic.claude-3-7-sonnet-20250219-v1:0");
+    });
+
     it("should handle reasoning tokens", () => {
       const responseBody = {
         usage: {
