@@ -17,6 +17,10 @@ export interface ModelPricingRaw {
     output_cost_per_token_above_200k_tokens?: number;
     input_cost_per_token_above_128k_tokens?: number;
     output_cost_per_token_above_128k_tokens?: number;
+    input_cost_per_token_above_100k_tokens?: number;
+    output_cost_per_token_above_100k_tokens?: number;
+    cache_read_input_token_cost_above_100k_tokens?: number;
+    cache_creation_input_token_cost_above_100k_tokens?: number;
     litellm_provider?: string;
     mode?: string;
     supports_function_calling?: boolean;
@@ -42,6 +46,10 @@ export interface ModelPricing {
     output_cost_per_token_above_200k_tokens?: number;
     input_cost_per_token_above_128k_tokens?: number;
     output_cost_per_token_above_128k_tokens?: number;
+    input_cost_per_token_above_100k_tokens?: number;
+    output_cost_per_token_above_100k_tokens?: number;
+    cache_read_input_token_cost_above_100k_tokens?: number;
+    cache_creation_input_token_cost_above_100k_tokens?: number;
 }
 /**
  * Interface for token usage information with standardized field names

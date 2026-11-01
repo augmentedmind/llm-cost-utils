@@ -43,6 +43,27 @@ function calculateTieredTokenCost(tokens, baseCost, above200kCost, above128kCost
     return tokens * baseCost;
 }
 /**
+ * Models priced by prompt length at 100k (Claude Haiku 5.5): a request whose
+ * prompt (all input tokens, including cache reads and writes) is over 100k pays
+ * the higher rate for input, output, cache reads and cache writes alike.
+ * Returns flat pricing for this request with the right tier's rates applied.
+ */
+function applyWholeRequest100kTier(pricing, promptTokens) {
+    if (pricing.input_cost_per_token_above_100k_tokens === undefined ||
+        promptTokens <= 100000) {
+        return pricing;
+    }
+    return {
+        input_cost_per_token: pricing.input_cost_per_token_above_100k_tokens,
+        output_cost_per_token: pricing.output_cost_per_token_above_100k_tokens ??
+            pricing.output_cost_per_token,
+        cache_read_input_token_cost: pricing.cache_read_input_token_cost_above_100k_tokens ??
+            pricing.cache_read_input_token_cost,
+        cache_creation_input_token_cost: pricing.cache_creation_input_token_cost_above_100k_tokens ??
+            pricing.cache_creation_input_token_cost,
+    };
+}
+/**
  * Map a model name to its default provider if no provider is specified
  */
 function mapToDefaultProvider(model) {
@@ -115,6 +136,10 @@ export function getModelPricing(model) {
         output_cost_per_token_above_200k_tokens: rawPricing.output_cost_per_token_above_200k_tokens,
         input_cost_per_token_above_128k_tokens: rawPricing.input_cost_per_token_above_128k_tokens,
         output_cost_per_token_above_128k_tokens: rawPricing.output_cost_per_token_above_128k_tokens,
+        input_cost_per_token_above_100k_tokens: rawPricing.input_cost_per_token_above_100k_tokens,
+        output_cost_per_token_above_100k_tokens: rawPricing.output_cost_per_token_above_100k_tokens,
+        cache_read_input_token_cost_above_100k_tokens: rawPricing.cache_read_input_token_cost_above_100k_tokens,
+        cache_creation_input_token_cost_above_100k_tokens: rawPricing.cache_creation_input_token_cost_above_100k_tokens,
     };
 }
 /**
@@ -128,7 +153,7 @@ export function getModelPricing(model) {
  */
 export function calculateRequestCost(model, promptCacheMissTokens, totalOutputTokens, promptCacheHitTokens = 0, promptCacheWriteTokens = 0) {
     // Get model pricing
-    const pricing = getModelPricing(model);
+    const pricing = applyWholeRequest100kTier(getModelPricing(model), promptCacheMissTokens + promptCacheHitTokens + promptCacheWriteTokens);
     // Calculate total input tokens for tier determination
     const totalInputTokens = promptCacheMissTokens + promptCacheHitTokens;
     // Calculate actual costs using tiered pricing (with caching applied)
