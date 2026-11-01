@@ -8,7 +8,7 @@ describe("Simple Tiered Pricing Support", () => {
   test("should handle Gemini 2.5 Pro 200k tier pricing", () => {
     // Test with tokens above 200k threshold
     const aboveThreshold = calculateRequestCost(
-      "gemini-2.5-pro-preview-05-06",
+      "gemini-2.5-pro",
       250000, // Above 200k threshold
       5000, // Output tokens
       0, // Cache hits
@@ -17,7 +17,7 @@ describe("Simple Tiered Pricing Support", () => {
 
     // Test with tokens below 200k threshold
     const belowThreshold = calculateRequestCost(
-      "gemini-2.5-pro-preview-05-06",
+      "gemini-2.5-pro",
       150000, // Below 200k threshold
       5000, // Output tokens
       0, // Cache hits
@@ -73,7 +73,7 @@ describe("Simple Tiered Pricing Support", () => {
 
   test("should calculate cache savings correctly with tiered pricing", () => {
     const analysis = calculateRequestCost(
-      "gemini-2.5-pro-preview-05-06",
+      "gemini-2.5-pro",
       100000, // Cache miss tokens (below threshold)
       2000, // Output tokens
       150000, // Cache hit tokens (would put total at 250k, above threshold)
@@ -90,7 +90,7 @@ describe("Simple Tiered Pricing Support", () => {
   });
 
   test("should extract tier attributes from model pricing", () => {
-    const pricing = getModelPricing("gemini-2.5-pro-preview-05-06");
+    const pricing = getModelPricing("gemini-2.5-pro");
 
     // Should have tier attributes for 200k threshold
     expect(pricing.input_cost_per_token_above_200k_tokens).toBeDefined();
@@ -107,7 +107,7 @@ describe("Simple Tiered Pricing Support", () => {
 
   test("should handle exact threshold boundary correctly", () => {
     const exactThreshold = calculateRequestCost(
-      "gemini-2.5-pro-preview-05-06",
+      "gemini-2.5-pro",
       200000, // Exactly at 200k threshold
       1000, // Output tokens
       0, // Cache hits
