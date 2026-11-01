@@ -13,8 +13,8 @@ describe("getModelPricing", () => {
 
   it("should automatically map models to their default providers", () => {
     const pricing = getModelPricing("mistral-small-latest");
-    expect(pricing.input_cost_per_token).toBe(6e-8);
-    expect(pricing.output_cost_per_token).toBe(1.8e-7);
+    expect(pricing.input_cost_per_token).toBe(1.5e-7);
+    expect(pricing.output_cost_per_token).toBe(6e-7);
   });
 
   it("should return pricing for gpt-4-turbo", () => {
@@ -38,8 +38,8 @@ describe("getModelPricing", () => {
   it("should map mistral models to mistral provider automatically", () => {
     const pricing = getModelPricing("mistral-small-latest");
     // Should find mistral/mistral-small-latest, not azure_ai/mistral-small
-    expect(pricing.input_cost_per_token).toBe(6e-8);
-    expect(pricing.output_cost_per_token).toBe(1.8e-7);
+    expect(pricing.input_cost_per_token).toBe(1.5e-7);
+    expect(pricing.output_cost_per_token).toBe(6e-7);
   });
 });
 
